@@ -1,7 +1,7 @@
 # https://docs.pcloud.com
 
 
-```
+```go
 package main
 
 import "github.com/yanmhlv/pcloud"

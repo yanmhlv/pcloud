@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -62,7 +61,6 @@ func (c *pCloudClient) UploadFile(reader io.Reader, path string, folderID int, f
 		return err
 	}
 
-	fmt.Println(urlBuilder("uploadfile", values))
 	req, err := http.NewRequest("POST", urlBuilder("uploadfile", values), &b)
 	if err != nil {
 		return err

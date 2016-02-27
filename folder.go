@@ -62,15 +62,48 @@ func (c *pCloudClient) CreateFolder(path string, folderID int, name string) erro
 //  return nil
 // }
 
-// func (c *pCloudClient) RenameFolder() error {
-//  u := (&url.URL{
-//      Scheme:   apiScheme,
-//      Host:     apiHost,
-//      Path:     "renamefolder",
-//      RawQuery: url.Values{}.Encode(),
-//  }).String()
-//  return nil
-// }
+func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) error {
+	values := url.Values{
+		"auth":   {*c.Auth},
+		"topath": {topath},
+	}
+
+	switch {
+	case folderID > 0:
+		values["folderid"] = []string{strconv.Itoa(folderID)}
+	case path != "":
+		values["path"] = []string{path}
+	default:
+		return errors.New("bad params")
+	}
+
+	u := (&url.URL{
+		Scheme:   apiScheme,
+		Host:     apiHost,
+		Path:     "renamefolder",
+		RawQuery: values.Encode(),
+	}).String()
+
+	resp, err := c.Client.Get(u)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+	result := struct {
+		Result int    `json:"result"`
+		Error  string `json:"error"`
+	}{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return err
+	}
+
+	if result.Result != 0 {
+		return errors.New(result.Error)
+	}
+
+	return nil
+}
 
 func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
 	values := url.Values{

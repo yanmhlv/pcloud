@@ -15,21 +15,14 @@ func (c *pCloudClient) CreateFolder(path string, folderID int, name string) erro
 	switch {
 	case path != "":
 		values["path"] = []string{path}
-	case folderID > 0 && name != "":
+	case folderID >= 0 && name != "":
 		values["folderid"] = []string{strconv.Itoa(folderID)}
 		values["name"] = []string{name}
 	default:
 		return errors.New("bad params")
 	}
 
-	u := (&url.URL{
-		Scheme:   apiScheme,
-		Host:     apiHost,
-		Path:     "createfolder",
-		RawQuery: values.Encode(),
-	}).String()
-
-	resp, err := c.Client.Get(u)
+	resp, err := c.Client.Get(urlBuilder("createfolder", values))
 	if err != nil {
 		return err
 	}
@@ -69,7 +62,7 @@ func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) er
 	}
 
 	switch {
-	case folderID > 0:
+	case folderID >= 0:
 		values["folderid"] = []string{strconv.Itoa(folderID)}
 	case path != "":
 		values["path"] = []string{path}
@@ -77,14 +70,7 @@ func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) er
 		return errors.New("bad params")
 	}
 
-	u := (&url.URL{
-		Scheme:   apiScheme,
-		Host:     apiHost,
-		Path:     "renamefolder",
-		RawQuery: values.Encode(),
-	}).String()
-
-	resp, err := c.Client.Get(u)
+	resp, err := c.Client.Get(urlBuilder("renamefolder", values))
 	if err != nil {
 		return err
 	}
@@ -113,20 +99,13 @@ func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
 	switch {
 	case path != "":
 		values["path"] = []string{path}
-	case folderID > 0:
+	case folderID >= 0:
 		values["folderid"] = []string{strconv.Itoa(folderID)}
 	default:
 		return errors.New("bad params")
 	}
 
-	u := (&url.URL{
-		Scheme:   apiScheme,
-		Host:     apiHost,
-		Path:     "deletefolder",
-		RawQuery: values.Encode(),
-	}).String()
-
-	resp, err := c.Client.Get(u)
+	resp, err := c.Client.Get(urlBuilder("deletefolder", values))
 	if err != nil {
 		return err
 	}
@@ -157,20 +136,13 @@ func (c *pCloudClient) DeleteFolderRecursive(path string, folderID int) error {
 	switch {
 	case path != "":
 		values["path"] = []string{path}
-	case folderID > 0:
+	case folderID >= 0:
 		values["folderid"] = []string{strconv.Itoa(folderID)}
 	default:
 		return errors.New("bad params")
 	}
 
-	u := (&url.URL{
-		Scheme:   apiScheme,
-		Host:     apiHost,
-		Path:     "deletefolderrecursive",
-		RawQuery: values.Encode(),
-	}).String()
-
-	resp, err := c.Client.Get(u)
+	resp, err := c.Client.Get(urlBuilder("deletefolderrecursive", values))
 	if err != nil {
 		return err
 	}

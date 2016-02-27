@@ -13,14 +13,7 @@ func (c *pCloudClient) Login(username string, password string) error {
 		"password": {password},
 	}
 
-	u := (&url.URL{
-		Scheme:   apiScheme,
-		Host:     apiHost,
-		Path:     "userinfo",
-		RawQuery: values.Encode(),
-	}).String()
-
-	resp, err := c.Client.Get(u)
+	resp, err := c.Client.Get(urlBuilder("userinfo", values))
 	if err != nil {
 		return err
 	}
@@ -50,14 +43,7 @@ func (c *pCloudClient) Logout() error {
 		"auth": {*c.Auth},
 	}
 
-	u := (&url.URL{
-		Scheme:   apiScheme,
-		Host:     apiHost,
-		Path:     "logout",
-		RawQuery: values.Encode(),
-	}).String()
-
-	resp, err := c.Client.Get(u)
+	resp, err := c.Client.Get(urlBuilder("logout", values))
 	if err != nil {
 		return err
 	}

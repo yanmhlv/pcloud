@@ -24,24 +24,19 @@ func (c *pCloudClient) UploadFile(reader io.Reader, path string, folderID int, f
 
 	if noPartial > 0 {
 		values["nopartial"] = []string{strconv.Itoa(noPartial)}
-		// w.WriteField("nopartial", strconv.Itoa(noPartial))
 	}
 	if progressHash != "" {
 		values["progresshash"] = []string{progressHash}
-		// w.WriteField("progresshash", progressHash)
 	}
 	if renameIfExists > 0 {
 		values["renameifexists"] = []string{strconv.Itoa(renameIfExists)}
-		// w.WriteField("renameifexists", strconv.Itoa(renameIfExists))
 	}
 
 	switch {
 	case path != "":
 		values["path"] = []string{path}
-		// w.WriteField("path", path)
 	case folderID >= 0:
 		values["folderid"] = []string{strconv.Itoa(folderID)}
-		// w.WriteField("folderid", strconv.Itoa(folderID))
 	default:
 		return errors.New("bad params")
 	}
@@ -65,6 +60,7 @@ func (c *pCloudClient) UploadFile(reader io.Reader, path string, folderID int, f
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
 
 	resp, err := c.Client.Do(req)
 	if err != nil {

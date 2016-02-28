@@ -43,23 +43,8 @@ func (c *pCloudClient) Logout() error {
 		"auth": {*c.Auth},
 	}
 
-	resp, err := c.Client.Get(urlBuilder("logout", values))
-	if err != nil {
+	if err := checkResult(c.Client.Get(urlBuilder("logout", values))); err != nil {
 		return err
-	}
-
-	defer resp.Body.Close()
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
 	}
 
 	c.Auth = nil

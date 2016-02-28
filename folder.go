@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"encoding/json"
 	"errors"
 	"net/url"
 	"strconv"
@@ -22,27 +21,7 @@ func (c *pCloudClient) CreateFolder(path string, folderID int, name string) erro
 		return errors.New("bad params")
 	}
 
-	resp, err := c.Client.Get(urlBuilder("createfolder", values))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-
-	return nil
+	return checkResult(c.Client.Get(urlBuilder("createfolder", values)))
 }
 
 // func (c *pCloudClient) ListFolder() error {
@@ -70,25 +49,7 @@ func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) er
 		return errors.New("bad params")
 	}
 
-	resp, err := c.Client.Get(urlBuilder("renamefolder", values))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-
-	return nil
+	return checkResult(c.Client.Get(urlBuilder("renamefolder", values)))
 }
 
 func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
@@ -105,27 +66,7 @@ func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
 		return errors.New("bad params")
 	}
 
-	resp, err := c.Client.Get(urlBuilder("deletefolder", values))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-
-	return nil
+	return checkResult(c.Client.Get(urlBuilder("deletefolder", values)))
 }
 
 func (c *pCloudClient) DeleteFolderRecursive(path string, folderID int) error {
@@ -142,25 +83,5 @@ func (c *pCloudClient) DeleteFolderRecursive(path string, folderID int) error {
 		return errors.New("bad params")
 	}
 
-	resp, err := c.Client.Get(urlBuilder("deletefolderrecursive", values))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-
-	return nil
+	return checkResult(c.Client.Get(urlBuilder("deletefolderrecursive", values)))
 }

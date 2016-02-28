@@ -2,7 +2,6 @@ package pcloud
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -62,29 +61,7 @@ func (c *pCloudClient) UploadFile(reader io.Reader, path string, folderID int, f
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
-	resp, err := c.Client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-
-	return nil
-
-	return nil
+	return checkResult(c.Client.Do(req))
 }
 
 func (c *pCloudClient) CopyFile(fileID int, path string, toFolderID int, toName string, toPath string) error {
@@ -111,25 +88,7 @@ func (c *pCloudClient) CopyFile(fileID int, path string, toFolderID int, toName 
 		return errors.New("bad params")
 	}
 
-	resp, err := c.Client.Get(urlBuilder("copyfile", values))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&resp.Body); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-	return nil
+	return checkResult(c.Client.Get(urlBuilder("copyfile", values)))
 }
 
 func (c *pCloudClient) DeleteFile(fileID int, path string) error {
@@ -146,27 +105,7 @@ func (c *pCloudClient) DeleteFile(fileID int, path string) error {
 		return errors.New("bad params")
 	}
 
-	resp, err := c.Client.Get(urlBuilder("deletefile", values))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-
-	return nil
+	return checkResult(c.Client.Get(urlBuilder("deletefile", values)))
 }
 
 func (c *pCloudClient) RenameFile(fileID int, path string, toPath string, toFolderID int, toName string) error {
@@ -193,25 +132,5 @@ func (c *pCloudClient) RenameFile(fileID int, path string, toPath string, toFold
 		return errors.New("bad params")
 	}
 
-	resp, err := c.Client.Get(urlBuilder("renamefile", values))
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	result := struct {
-		Result int    `json:"result"`
-		Error  string `json:"error"`
-	}{}
-
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return err
-	}
-
-	if result.Result != 0 {
-		return errors.New(result.Error)
-	}
-
-	return nil
+	return checkResult(c.Client.Get(urlBuilder("renamefile", values)))
 }

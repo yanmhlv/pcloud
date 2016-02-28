@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// checkResult; returned error if request is failed or server returned error
 func checkResult(resp *http.Response, err error) error {
 	if err != nil {
 		return err

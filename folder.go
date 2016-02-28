@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// CreateFolder; https://docs.pcloud.com/methods/folder/createfolder.html
 func (c *pCloudClient) CreateFolder(path string, folderID int, name string) error {
 	values := url.Values{
 		"auth": {*c.Auth},
@@ -34,6 +35,7 @@ func (c *pCloudClient) CreateFolder(path string, folderID int, name string) erro
 //  return nil
 // }
 
+// RenameFolder; https://docs.pcloud.com/methods/folder/renamefolder.html
 func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) error {
 	values := url.Values{
 		"auth":   {*c.Auth},
@@ -52,6 +54,7 @@ func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) er
 	return checkResult(c.Client.Get(urlBuilder("renamefolder", values)))
 }
 
+// DeleteFolder; https://docs.pcloud.com/methods/folder/deletefolder.html
 func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
 	values := url.Values{
 		"auth": {*c.Auth},
@@ -69,6 +72,7 @@ func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
 	return checkResult(c.Client.Get(urlBuilder("deletefolder", values)))
 }
 
+// DeleteFolderRecursive; https://docs.pcloud.com/methods/folder/deletefolderrecursive.html
 func (c *pCloudClient) DeleteFolderRecursive(path string, folderID int) error {
 	values := url.Values{
 		"auth": {*c.Auth},

@@ -6,6 +6,7 @@ import (
 	"net/url"
 )
 
+// Login client; https://docs.pcloud.com/methods/intro/authentication.html
 func (c *pCloudClient) Login(username string, password string) error {
 	values := url.Values{
 		"getauth":  {"1"},
@@ -38,6 +39,7 @@ func (c *pCloudClient) Login(username string, password string) error {
 	return nil
 }
 
+// Logout client; https://docs.pcloud.com/methods/auth/logout.html
 func (c *pCloudClient) Logout() error {
 	values := url.Values{
 		"auth": {*c.Auth},

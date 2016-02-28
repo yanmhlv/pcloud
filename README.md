@@ -14,20 +14,23 @@ import (
 func main() {
     c := pcloud.NewClient()
     fmt.Println("Login", c.Login("myemail", "mypassword"))
-    fmt.Println("CreateFolder", c.CreateFolder("/helloworld", 0, ""))
-    fmt.Println("DeleteFolder", c.DeleteFolder("/helloworld", 0))
-    fmt.Println("DeleteFolderRecursive", c.DeleteFolderRecursive("/1/2/3/4", 0))
+    fmt.Println("CreateFolder /helloworld", c.CreateFolder("/helloworld", 0, ""))
+    fmt.Println("CreateFolder /helloworld/1", c.CreateFolder("/helloworld/1", 0, ""))
+    fmt.Println("CreateFolder /helloworld/2", c.CreateFolder("/helloworld/2", 0, ""))
 
-    fmt.Println("create folder 2", c.CreateFolder("/test", 0, ""))
-    fmt.Println("RenameFolder", c.RenameFolder(0, "/test", "/hello_world"))
-    c.DeleteFolder("/hello_world", 0)
-    fmt.Println(c.Auth, c.Client)
-    fmt.Println("CopyFile", c.CopyFile(0, "/1.go", 0, "", "/2.go"))
-    fmt.Println("RenameFile", c.RenameFile(0, "/2.go", "/3.go", 0, ""))
-    fmt.Println("DeleteFile", c.DeleteFile(0, "/3.go"))
+    fmt.Println("DeleteFolder /helloworld/2", c.DeleteFolder("/helloworld/2", 0))
+
+    fmt.Println("RenameFolder /helloworld to /hello_world", c.RenameFolder(-1, "/helloworld", "/hello_world"))
+    fmt.Println("DeleteFolderRecursive /hello_world", c.DeleteFolderRecursive("/hello_world", 0))
 
     fh, _ := os.Open("/Users/yan/Desktop/index.html")
-    fmt.Println("UploadFile", c.UploadFile(fh, "", 0, "test.go", 0, "", 0))
+    fmt.Println("UploadFile index.html", c.UploadFile(fh, "", 0, "index.html", 0, "", 0))
+    fmt.Println("CopyFile /index.html to /index2.html", c.CopyFile(0, "/index.html", 0, "", "/index2.html"))
+    fmt.Println("DeleteFile /index2.html", c.DeleteFile(0, "/index2.html"))
+    fmt.Println("RenameFile /index.html to /index2.html", c.RenameFile(0, "/index.html", "/index2.html", 0, ""))
+    fmt.Println("DeleteFile /index2.html", c.DeleteFile(0, "/index2.html"))
+
+    fmt.Println("authkey:", *c.Auth)
     fmt.Println("Logout", c.Logout())
 }
 

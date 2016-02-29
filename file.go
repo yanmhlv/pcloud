@@ -14,6 +14,7 @@ import (
 // downloadfile
 // checksumfile
 
+// DownloadFile; https://docs.pcloud.com/methods/file/downloadfile.html
 func (c *pCloudClient) DownloadFile(urlStr string, path string, folderid int, target string) error {
 	values := url.Values{
 		"url":  {urlStr},

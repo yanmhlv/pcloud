@@ -14,6 +14,26 @@ import (
 // downloadfile
 // checksumfile
 
+func (c *pCloudClient) DownloadFile(urlStr string, path string, folderid int, target string) error {
+	values := url.Values{
+		"url":  {urlStr},
+		"auth": {*c.Auth},
+	}
+
+	switch {
+	case path != "":
+		values["path"] = []string{path}
+	case folderid >= 0:
+		values["folderid"] = []string{strconv.Itoa(folderid)}
+	}
+
+	if target != "" {
+		values["target"] = []string{target}
+	}
+
+	return checkResult(c.Client.Get(urlBuilder("downloadfile", values)))
+}
+
 // UploadFile; https://docs.pcloud.com/methods/file/uploadfile.html
 func (c *pCloudClient) UploadFile(reader io.Reader, path string, folderID int, filename string, noPartial int, progressHash string, renameIfExists int) error {
 	var b bytes.Buffer

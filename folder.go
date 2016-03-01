@@ -14,10 +14,10 @@ func (c *pCloudClient) CreateFolder(path string, folderID int, name string) erro
 
 	switch {
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	case folderID >= 0 && name != "":
-		values["folderid"] = []string{strconv.Itoa(folderID)}
-		values["name"] = []string{name}
+		values.Add("folderid", strconv.Itoa(folderID))
+		values.Add("name", name)
 	default:
 		return errors.New("bad params")
 	}
@@ -44,9 +44,9 @@ func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) er
 
 	switch {
 	case folderID >= 0:
-		values["folderid"] = []string{strconv.Itoa(folderID)}
+		values.Add("folderid", strconv.Itoa(folderID))
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	default:
 		return errors.New("bad params")
 	}
@@ -62,9 +62,9 @@ func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
 
 	switch {
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	case folderID >= 0:
-		values["folderid"] = []string{strconv.Itoa(folderID)}
+		values.Add("folderid", strconv.Itoa(folderID))
 	default:
 		return errors.New("bad params")
 	}
@@ -80,9 +80,9 @@ func (c *pCloudClient) DeleteFolderRecursive(path string, folderID int) error {
 
 	switch {
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	case folderID >= 0:
-		values["folderid"] = []string{strconv.Itoa(folderID)}
+		values.Add("folderid", strconv.Itoa(folderID))
 	default:
 		return errors.New("bad params")
 	}

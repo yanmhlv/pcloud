@@ -23,13 +23,13 @@ func (c *pCloudClient) DownloadFile(urlStr string, path string, folderid int, ta
 
 	switch {
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	case folderid >= 0:
-		values["folderid"] = []string{strconv.Itoa(folderid)}
+		values.Add("folderid", strconv.Itoa(folderid))
 	}
 
 	if target != "" {
-		values["target"] = []string{target}
+		values.Add("target", target)
 	}
 
 	return checkResult(c.Client.Get(urlBuilder("downloadfile", values)))
@@ -43,27 +43,27 @@ func (c *pCloudClient) UploadFile(reader io.Reader, path string, folderID int, f
 		"auth": {*c.Auth},
 	}
 
-	if noPartial > 0 {
-		values["nopartial"] = []string{strconv.Itoa(noPartial)}
-	}
-	if progressHash != "" {
-		values["progresshash"] = []string{progressHash}
-	}
-	if renameIfExists > 0 {
-		values["renameifexists"] = []string{strconv.Itoa(renameIfExists)}
-	}
-
 	switch {
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	case folderID >= 0:
-		values["folderid"] = []string{strconv.Itoa(folderID)}
+		values.Add("folderid", strconv.Itoa(folderID))
 	default:
 		return errors.New("bad params")
 	}
 
 	if filename == "" {
 		return errors.New("bad params")
+	}
+
+	if noPartial > 0 {
+		values.Add("nopartial", strconv.Itoa(noPartial))
+	}
+	if progressHash != "" {
+		values.Add("progresshash", progressHash)
+	}
+	if renameIfExists > 0 {
+		values.Add("renameifexists", strconv.Itoa(renameIfExists))
 	}
 
 	fw, err := w.CreateFormFile(filename, filename)
@@ -94,19 +94,19 @@ func (c *pCloudClient) CopyFile(fileID int, path string, toFolderID int, toName 
 
 	switch {
 	case fileID > 0:
-		values["fileid"] = []string{strconv.Itoa(fileID)}
+		values.Add("fileid", strconv.Itoa(fileID))
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	default:
 		return errors.New("bad params")
 	}
 
 	switch {
 	case toFolderID > 0 && toName != "":
-		values["tofolderid"] = []string{strconv.Itoa(toFolderID)}
-		values["toname"] = []string{toName}
+		values.Add("tofolderid", strconv.Itoa(toFolderID))
+		values.Add("toname", toName)
 	case toPath != "":
-		values["topath"] = []string{toPath}
+		values.Add("topath", toPath)
 	default:
 		return errors.New("bad params")
 	}
@@ -122,9 +122,9 @@ func (c *pCloudClient) DeleteFile(fileID int, path string) error {
 
 	switch {
 	case fileID > 0:
-		values["fileid"] = []string{strconv.Itoa(fileID)}
+		values.Add("fileid", strconv.Itoa(fileID))
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	default:
 		return errors.New("bad params")
 	}
@@ -140,9 +140,9 @@ func (c *pCloudClient) RenameFile(fileID int, path string, toPath string, toFold
 
 	switch {
 	case fileID > 0:
-		values["fileid"] = []string{strconv.Itoa(fileID)}
+		values.Add("fileid", strconv.Itoa(fileID))
 	case path != "":
-		values["path"] = []string{path}
+		values.Add("path", path)
 	default:
 		return errors.New("bad params")
 	}

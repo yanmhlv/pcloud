@@ -8,7 +8,6 @@ import (
 	"strconv"
 )
 
-// getfilelink
 // getvideolink
 // getvideolinks
 // getaudiolink

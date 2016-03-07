@@ -14,12 +14,10 @@ func (c *pCloudClient) Login(username string, password string) error {
 		"password": {password},
 	}
 
-	resp, err := c.Client.Get(urlBuilder("userinfo", values))
+	buf, err := convertToBuffer(c.Client.Get(urlBuilder("userinfo", values)))
 	if err != nil {
 		return err
 	}
-
-	defer resp.Body.Close()
 
 	result := struct {
 		Auth   string `json:"auth"`
@@ -27,7 +25,7 @@ func (c *pCloudClient) Login(username string, password string) error {
 		Error  string `json:"error"`
 	}{}
 
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &result); err != nil {
 		return err
 	}
 

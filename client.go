@@ -7,6 +7,7 @@ type pCloudClient struct {
 	Client *http.Client
 }
 
+// NewClient create new pCloudClient
 func NewClient() *pCloudClient {
 	return &pCloudClient{
 		Auth:   nil,

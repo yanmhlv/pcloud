@@ -9,10 +9,11 @@ import (
 
 // convertToBuffer; convert http.Response.Body to bytes.Buffer
 func convertToBuffer(resp *http.Response, err error) (*bytes.Buffer, error) {
-	buf := &bytes.Buffer{}
 	if err != nil {
-		return buf, err
+		return nil, err
 	}
+
+	buf := new(bytes.Buffer)
 	defer resp.Body.Close()
 
 	_, err = buf.ReadFrom(resp.Body)

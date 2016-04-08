@@ -1,7 +1,7 @@
 # https://docs.pcloud.com
 
 ```bash
-usenrmame=myusername password=mypassword go test github.com/yanmhlv/pcloud
+username=myusername password=mypassword go test github.com/yanmhlv/pcloud
 ```
 
 ```go

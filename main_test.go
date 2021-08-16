@@ -3,7 +3,6 @@ package pcloud
 import (
 	"bytes"
 	"math/rand"
-	"os"
 	"testing"
 	"time"
 )
@@ -50,18 +49,22 @@ func init() {
 }
 
 // TestLogin
+/*
 func TestLogin(t *testing.T) {
 	if err := client.Login(os.Getenv("username"), os.Getenv("password")); err != nil {
 		t.Fatal("can't login", err)
 	}
 }
+*/
 
 // TestAuthkey
+/*
 func TestAuthkey(t *testing.T) {
 	if client.Auth == nil {
 		t.Error("auth key is nil!")
 	}
 }
+*/
 
 // TestCreateFolder
 func TestCreateFolderByPath(t *testing.T) {
@@ -146,8 +149,10 @@ func TestDeleteFile(t *testing.T) {
 }
 
 // TestLogout
+/*
 func TestLogout(t *testing.T) {
 	if err := client.Logout(); err != nil {
 		t.Error("logout error", err)
 	}
 }
+*/

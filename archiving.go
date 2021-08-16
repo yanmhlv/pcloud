@@ -16,9 +16,7 @@ import (
 
 // GetZip; https://docs.pcloud.com/methods/archiving/getzip.html
 func (c *pCloudClient) GetZip(forceDownload int, filename string, timeOffset string) (io.Reader, error) {
-	values := url.Values{
-		"auth": {*c.Auth},
-	}
+	values := url.Values{}
 
 	if forceDownload > 0 {
 		values.Add("forcedownload", strconv.Itoa(forceDownload))
@@ -46,9 +44,7 @@ func (c *pCloudClient) GetZip(forceDownload int, filename string, timeOffset str
 func (c *pCloudClient) GetZipLink(maxspeed int, forceDownload int, filename string, timeOffset string) ([]string, error) {
 	var links []string
 
-	values := url.Values{
-		"auth": {*c.Auth},
-	}
+	values := url.Values{}
 
 	if maxspeed > 0 {
 		values.Add("maxspeed", strconv.Itoa(maxspeed))

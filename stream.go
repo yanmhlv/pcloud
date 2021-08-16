@@ -18,9 +18,7 @@ import (
 func (c *pCloudClient) GetFileLink(fileID int, path string, forceDownload int, contentType string, maxSpeed int, skipFilename int) ([]string, error) {
 	var links []string
 
-	values := url.Values{
-		"auth": {*c.Auth},
-	}
+	values := url.Values{}
 
 	switch {
 	case fileID > 0:

@@ -331,9 +331,15 @@ func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) 
 }
 
 func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64) (*Metadata, error) {
+	metadata, err := c.Stat(ctx, fileID)
+	if err != nil {
+		return nil, err
+	}
+
 	params := url.Values{
 		"fileid":     {strconv.FormatUint(fileID, 10)},
 		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
+		"toname":     {metadata.Name},
 	}
 
 	var resp fileResponse

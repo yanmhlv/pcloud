@@ -69,6 +69,21 @@ func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFo
 	return &resp.Metadata, nil
 }
 
+func (c *Client) StatFolder(ctx context.Context, folderID uint64) (*Metadata, error) {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(folderID, 10)},
+	}
+
+	var resp folderResponse
+	if err := c.do(ctx, "stat", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
 func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
 	params := url.Values{
 		"folderid": {strconv.FormatUint(parentID, 10)},
@@ -133,9 +148,15 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 }
 
 func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64) (*Metadata, error) {
+	metadata, err := c.StatFolder(ctx, folderID)
+	if err != nil {
+		return nil, err
+	}
+
 	params := url.Values{
 		"folderid":   {strconv.FormatUint(folderID, 10)},
 		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
+		"toname":     {metadata.Name},
 	}
 
 	var resp folderResponse

@@ -117,8 +117,8 @@ func (c *Client) CreateFolderIfNotExists(parentID uint64, name string) (*Metadat
 
 func (c *Client) RenameFolder(folderID uint64, newName string) (*Metadata, error) {
 	params := url.Values{
-		"folderid":   {strconv.FormatUint(folderID, 10)},
-		"toname":     {newName},
+		"folderid": {strconv.FormatUint(folderID, 10)},
+		"toname":   {newName},
 	}
 
 	var resp folderResponse

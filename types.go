@@ -19,23 +19,23 @@ func (e *Error) Error() string {
 }
 
 type Metadata struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Path        string    `json:"path"`
-	Created     time.Time `json:"created"`
-	Modified    time.Time `json:"modified"`
-	IsFolder    bool      `json:"isfolder"`
-	IsMine      bool      `json:"ismine"`
-	IsShared    bool      `json:"isshared"`
-	Icon        string    `json:"icon"`
-	FileID      uint64    `json:"fileid,omitempty"`
-	FolderID    uint64    `json:"folderid,omitempty"`
-	ParentID    uint64    `json:"parentfolderid,omitempty"`
-	Size        uint64    `json:"size,omitempty"`
-	ContentType string    `json:"contenttype,omitempty"`
-	Hash        string    `json:"hash,omitempty"`
-	Category    int       `json:"category,omitempty"`
-	Thumb       bool      `json:"thumb,omitempty"`
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	Path        string     `json:"path"`
+	Created     time.Time  `json:"created"`
+	Modified    time.Time  `json:"modified"`
+	IsFolder    bool       `json:"isfolder"`
+	IsMine      bool       `json:"ismine"`
+	IsShared    bool       `json:"isshared"`
+	Icon        string     `json:"icon"`
+	FileID      uint64     `json:"fileid,omitempty"`
+	FolderID    uint64     `json:"folderid,omitempty"`
+	ParentID    uint64     `json:"parentfolderid,omitempty"`
+	Size        uint64     `json:"size,omitempty"`
+	ContentType string     `json:"contenttype,omitempty"`
+	Hash        string     `json:"hash,omitempty"`
+	Category    int        `json:"category,omitempty"`
+	Thumb       bool       `json:"thumb,omitempty"`
 	Contents    []Metadata `json:"contents,omitempty"`
 }
 
@@ -48,15 +48,15 @@ type Revision struct {
 
 type UserInfo struct {
 	Error
-	UserID          uint64    `json:"userid"`
-	Email           string    `json:"email"`
-	EmailVerified   bool      `json:"emailverified"`
-	Registered      time.Time `json:"registered"`
-	Language        string    `json:"language"`
-	Premium         bool      `json:"premium"`
-	PremiumExpires  time.Time `json:"premiumexpires,omitempty"`
-	Quota           uint64    `json:"quota"`
-	UsedQuota       uint64    `json:"usedquota"`
+	UserID         uint64    `json:"userid"`
+	Email          string    `json:"email"`
+	EmailVerified  bool      `json:"emailverified"`
+	Registered     time.Time `json:"registered"`
+	Language       string    `json:"language"`
+	Premium        bool      `json:"premium"`
+	PremiumExpires time.Time `json:"premiumexpires,omitempty"`
+	Quota          uint64    `json:"quota"`
+	UsedQuota      uint64    `json:"usedquota"`
 }
 
 type FileLink struct {

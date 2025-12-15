@@ -1,91 +1,195 @@
 package pcloud
 
 import (
-	"errors"
 	"net/url"
 	"strconv"
 )
 
-// CreateFolder; https://docs.pcloud.com/methods/folder/createfolder.html
-func (c *pCloudClient) CreateFolder(path string, folderID int, name string) error {
-	values := url.Values{
-		"auth": {*c.Auth},
-	}
-
-	switch {
-	case path != "":
-		values.Add("path", path)
-	case folderID >= 0 && name != "":
-		values.Add("folderid", strconv.Itoa(folderID))
-		values.Add("name", name)
-	default:
-		return errors.New("bad params")
-	}
-
-	return checkResult(c.Client.Get(urlBuilder("createfolder", values)))
+type folderResponse struct {
+	Error
+	Metadata Metadata `json:"metadata"`
 }
 
-// func (c *pCloudClient) ListFolder() error {
-//  u := (&url.URL{
-//      Scheme:   apiScheme,
-//      Host:     apiHost,
-//      Path:     "listfolder",
-//      RawQuery: url.Values{}.Encode(),
-//  }).String()
-//  return nil
-// }
-
-// RenameFolder; https://docs.pcloud.com/methods/folder/renamefolder.html
-func (c *pCloudClient) RenameFolder(folderID int, path string, topath string) error {
-	values := url.Values{
-		"auth":   {*c.Auth},
-		"topath": {topath},
-	}
-
-	switch {
-	case folderID >= 0:
-		values.Add("folderid", strconv.Itoa(folderID))
-	case path != "":
-		values.Add("path", path)
-	default:
-		return errors.New("bad params")
-	}
-
-	return checkResult(c.Client.Get(urlBuilder("renamefolder", values)))
+type ListFolderOpts struct {
+	Recursive   bool
+	ShowDeleted bool
+	NoFiles     bool
+	NoShares    bool
 }
 
-// DeleteFolder; https://docs.pcloud.com/methods/folder/deletefolder.html
-func (c *pCloudClient) DeleteFolder(path string, folderID int) error {
-	values := url.Values{
-		"auth": {*c.Auth},
+func (c *Client) ListFolder(folderID uint64, opts *ListFolderOpts) (*Metadata, error) {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(folderID, 10)},
+	}
+	if opts != nil {
+		if opts.Recursive {
+			params.Set("recursive", "1")
+		}
+		if opts.ShowDeleted {
+			params.Set("showdeleted", "1")
+		}
+		if opts.NoFiles {
+			params.Set("nofiles", "1")
+		}
+		if opts.NoShares {
+			params.Set("noshares", "1")
+		}
 	}
 
-	switch {
-	case path != "":
-		values.Add("path", path)
-	case folderID >= 0:
-		values.Add("folderid", strconv.Itoa(folderID))
-	default:
-		return errors.New("bad params")
+	var resp folderResponse
+	if err := c.do("listfolder", params, &resp); err != nil {
+		return nil, err
 	}
-
-	return checkResult(c.Client.Get(urlBuilder("deletefolder", values)))
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
 }
 
-// DeleteFolderRecursive; https://docs.pcloud.com/methods/folder/deletefolderrecursive.html
-func (c *pCloudClient) DeleteFolderRecursive(path string, folderID int) error {
-	values := url.Values{
-		"auth": {*c.Auth},
+func (c *Client) ListFolderByPath(path string, opts *ListFolderOpts) (*Metadata, error) {
+	params := url.Values{
+		"path": {path},
+	}
+	if opts != nil {
+		if opts.Recursive {
+			params.Set("recursive", "1")
+		}
+		if opts.ShowDeleted {
+			params.Set("showdeleted", "1")
+		}
+		if opts.NoFiles {
+			params.Set("nofiles", "1")
+		}
+		if opts.NoShares {
+			params.Set("noshares", "1")
+		}
 	}
 
-	switch {
-	case path != "":
-		values.Add("path", path)
-	case folderID >= 0:
-		values.Add("folderid", strconv.Itoa(folderID))
-	default:
-		return errors.New("bad params")
+	var resp folderResponse
+	if err := c.do("listfolder", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) CreateFolder(parentID uint64, name string) (*Metadata, error) {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(parentID, 10)},
+		"name":     {name},
 	}
 
-	return checkResult(c.Client.Get(urlBuilder("deletefolderrecursive", values)))
+	var resp folderResponse
+	if err := c.do("createfolder", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) CreateFolderByPath(path string) (*Metadata, error) {
+	params := url.Values{
+		"path": {path},
+	}
+
+	var resp folderResponse
+	if err := c.do("createfolder", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) CreateFolderIfNotExists(parentID uint64, name string) (*Metadata, error) {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(parentID, 10)},
+		"name":     {name},
+	}
+
+	var resp folderResponse
+	if err := c.do("createfolderifnotexists", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) RenameFolder(folderID uint64, newName string) (*Metadata, error) {
+	params := url.Values{
+		"folderid":   {strconv.FormatUint(folderID, 10)},
+		"toname":     {newName},
+	}
+
+	var resp folderResponse
+	if err := c.do("renamefolder", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) MoveFolder(folderID, toFolderID uint64) (*Metadata, error) {
+	params := url.Values{
+		"folderid":   {strconv.FormatUint(folderID, 10)},
+		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
+	}
+
+	var resp folderResponse
+	if err := c.do("renamefolder", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) CopyFolder(folderID, toFolderID uint64) (*Metadata, error) {
+	params := url.Values{
+		"folderid":   {strconv.FormatUint(folderID, 10)},
+		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
+	}
+
+	var resp folderResponse
+	if err := c.do("copyfolder", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) DeleteFolder(folderID uint64) error {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(folderID, 10)},
+	}
+
+	var resp Error
+	if err := c.do("deletefolder", params, &resp); err != nil {
+		return err
+	}
+	return resp.Err()
+}
+
+func (c *Client) DeleteFolderRecursive(folderID uint64) error {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(folderID, 10)},
+	}
+
+	var resp Error
+	if err := c.do("deletefolderrecursive", params, &resp); err != nil {
+		return err
+	}
+	return resp.Err()
 }

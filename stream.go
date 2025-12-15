@@ -1,70 +1,112 @@
 package pcloud
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
 	"net/url"
 	"strconv"
 )
 
-// getvideolink
-// getvideolinks
-// getaudiolink
-// gethlslink
-// gettextfile
+type FileLinkOpts struct {
+	ForceDownload bool
+	ContentType   string
+	MaxSpeed      int
+}
 
-// GetFileLink; https://docs.pcloud.com/methods/streaming/getfilelink.html
-func (c *pCloudClient) GetFileLink(fileID int, path string, forceDownload int, contentType string, maxSpeed int, skipFilename int) ([]string, error) {
-	var links []string
+func (c *Client) GetFileLink(fileID uint64) (*FileLink, error) {
+	return c.GetFileLinkWithOpts(fileID, nil)
+}
 
-	values := url.Values{
-		"auth": {*c.Auth},
-	}
+func (c *Client) GetFileLinkByPath(path string) (*FileLink, error) {
+	return c.GetFileLinkByPathWithOpts(path, nil)
+}
 
-	switch {
-	case fileID > 0:
-		values.Add("fileid", strconv.Itoa(fileID))
-	case path != "":
-		values.Add("path", path)
-	default:
-		return links, errors.New("bad params")
+func (c *Client) GetFileLinkWithOpts(fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
+	params := url.Values{
+		"fileid": {strconv.FormatUint(fileID, 10)},
 	}
+	applyLinkOpts(params, opts)
 
-	if forceDownload > 0 {
-		values.Add("forcedownload", strconv.Itoa(forceDownload))
+	var resp FileLink
+	if err := c.do("getfilelink", params, &resp); err != nil {
+		return nil, err
 	}
-	if contentType != "" {
-		values.Add("contenttype", contentType)
+	if err := resp.Err(); err != nil {
+		return nil, err
 	}
-	if maxSpeed > 0 {
-		values.Add("maxspeed", strconv.Itoa(maxSpeed))
-	}
-	if skipFilename > 0 {
-		values.Add("skipfilename", strconv.Itoa(skipFilename))
-	}
+	return &resp, nil
+}
 
-	resp, err := c.Client.Get(urlBuilder("getfilelink", values))
-	if err != nil {
-		return links, err
+func (c *Client) GetFileLinkByPathWithOpts(path string, opts *FileLinkOpts) (*FileLink, error) {
+	params := url.Values{
+		"path": {path},
 	}
-	defer resp.Body.Close()
+	applyLinkOpts(params, opts)
 
-	result := struct {
-		Result int      `json:"result"`
-		Error  string   `json:"error"`
-		Path   string   `json:"path"`
-		Hosts  []string `json:"hosts"`
-	}{}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return links, err
+	var resp FileLink
+	if err := c.do("getfilelink", params, &resp); err != nil {
+		return nil, err
 	}
-	if result.Result > 0 {
-		return links, errors.New(result.Error)
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (c *Client) GetVideoLink(fileID uint64) (*FileLink, error) {
+	params := url.Values{
+		"fileid": {strconv.FormatUint(fileID, 10)},
 	}
 
-	for _, host := range result.Hosts {
-		links = append(links, fmt.Sprintf("https://%s%s", host, result.Path))
+	var resp FileLink
+	if err := c.do("getvideolink", params, &resp); err != nil {
+		return nil, err
 	}
-	return links, nil
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (c *Client) GetAudioLink(fileID uint64) (*FileLink, error) {
+	params := url.Values{
+		"fileid": {strconv.FormatUint(fileID, 10)},
+	}
+
+	var resp FileLink
+	if err := c.do("getaudiolink", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (c *Client) GetHLSLink(fileID uint64) (*FileLink, error) {
+	params := url.Values{
+		"fileid": {strconv.FormatUint(fileID, 10)},
+	}
+
+	var resp FileLink
+	if err := c.do("gethlslink", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func applyLinkOpts(params url.Values, opts *FileLinkOpts) {
+	if opts == nil {
+		return
+	}
+	if opts.ForceDownload {
+		params.Set("forcedownload", "1")
+	}
+	if opts.ContentType != "" {
+		params.Set("contenttype", opts.ContentType)
+	}
+	if opts.MaxSpeed > 0 {
+		params.Set("maxspeed", strconv.Itoa(opts.MaxSpeed))
+	}
 }

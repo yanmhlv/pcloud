@@ -2,7 +2,7 @@ package pcloud
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -10,152 +10,248 @@ import (
 	"strconv"
 )
 
-// uploadprogress
-// downloadfile
-// checksumfile
-
-// DownloadFile; https://docs.pcloud.com/methods/file/downloadfile.html
-func (c *pCloudClient) DownloadFile(urlStr string, path string, folderid int, target string) error {
-	values := url.Values{
-		"url":  {urlStr},
-		"auth": {*c.Auth},
-	}
-
-	switch {
-	case path != "":
-		values.Add("path", path)
-	case folderid >= 0:
-		values.Add("folderid", strconv.Itoa(folderid))
-	}
-
-	if target != "" {
-		values.Add("target", target)
-	}
-
-	return checkResult(c.Client.Get(urlBuilder("downloadfile", values)))
+type fileResponse struct {
+	Error
+	Metadata Metadata `json:"metadata"`
 }
 
-// UploadFile; https://docs.pcloud.com/methods/file/uploadfile.html
-func (c *pCloudClient) UploadFile(reader io.Reader, path string, folderID int, filename string, noPartial int, progressHash string, renameIfExists int) error {
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
-	values := url.Values{
-		"auth": {*c.Auth},
+type uploadResponse struct {
+	Error
+	FileIDs  []uint64   `json:"fileids"`
+	Metadata []Metadata `json:"metadata"`
+}
+
+type UploadOpts struct {
+	NoPartial      bool
+	RenameIfExists bool
+	ModifiedTime   int64
+	CreatedTime    int64
+}
+
+func (c *Client) Upload(folderID uint64, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(folderID, 10)},
+		"filename": {filename},
+	}
+	if opts != nil {
+		if opts.NoPartial {
+			params.Set("nopartial", "1")
+		}
+		if opts.RenameIfExists {
+			params.Set("renameifexists", "1")
+		}
+		if opts.ModifiedTime > 0 {
+			params.Set("mtime", strconv.FormatInt(opts.ModifiedTime, 10))
+		}
+		if opts.CreatedTime > 0 {
+			params.Set("ctime", strconv.FormatInt(opts.CreatedTime, 10))
+		}
 	}
 
-	switch {
-	case path != "":
-		values.Add("path", path)
-	case folderID >= 0:
-		values.Add("folderid", strconv.Itoa(folderID))
-	default:
-		return errors.New("bad params")
-	}
-
-	if filename == "" {
-		return errors.New("bad params")
-	}
-
-	if noPartial > 0 {
-		values.Add("nopartial", strconv.Itoa(noPartial))
-	}
-	if progressHash != "" {
-		values.Add("progresshash", progressHash)
-	}
-	if renameIfExists > 0 {
-		values.Add("renameifexists", strconv.Itoa(renameIfExists))
-	}
-
-	fw, err := w.CreateFormFile(filename, filename)
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	part, err := writer.CreateFormFile("file", filename)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if _, err := io.Copy(fw, reader); err != nil {
-		return err
+	if _, err := io.Copy(part, content); err != nil {
+		return nil, err
 	}
-	if err := w.Close(); err != nil {
-		return err
+	if err := writer.Close(); err != nil {
+		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", urlBuilder("uploadfile", values), &b)
+	var resp uploadResponse
+	if err := c.doPost("uploadfile", params, &body, writer.FormDataContentType(), &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	if len(resp.Metadata) == 0 {
+		return nil, fmt.Errorf("no metadata in response")
+	}
+	return &resp.Metadata[0], nil
+}
+
+func (c *Client) UploadByPath(path, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
+	params := url.Values{
+		"path":     {path},
+		"filename": {filename},
+	}
+	if opts != nil {
+		if opts.NoPartial {
+			params.Set("nopartial", "1")
+		}
+		if opts.RenameIfExists {
+			params.Set("renameifexists", "1")
+		}
+		if opts.ModifiedTime > 0 {
+			params.Set("mtime", strconv.FormatInt(opts.ModifiedTime, 10))
+		}
+		if opts.CreatedTime > 0 {
+			params.Set("ctime", strconv.FormatInt(opts.CreatedTime, 10))
+		}
+	}
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	part, err := writer.CreateFormFile("file", filename)
 	if err != nil {
+		return nil, err
+	}
+	if _, err := io.Copy(part, content); err != nil {
+		return nil, err
+	}
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+
+	var resp uploadResponse
+	if err := c.doPost("uploadfile", params, &body, writer.FormDataContentType(), &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	if len(resp.Metadata) == 0 {
+		return nil, fmt.Errorf("no metadata in response")
+	}
+	return &resp.Metadata[0], nil
+}
+
+func (c *Client) Download(fileID uint64) (io.ReadCloser, error) {
+	link, err := c.GetFileLink(fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Get(link.URL())
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("download failed: %s", resp.Status)
+	}
+	return resp.Body, nil
+}
+
+func (c *Client) DownloadByPath(path string) (io.ReadCloser, error) {
+	link, err := c.GetFileLinkByPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Get(link.URL())
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("download failed: %s", resp.Status)
+	}
+	return resp.Body, nil
+}
+
+func (c *Client) Stat(fileID uint64) (*Metadata, error) {
+	params := url.Values{
+		"fileid": {strconv.FormatUint(fileID, 10)},
+	}
+
+	var resp fileResponse
+	if err := c.do("stat", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) StatByPath(path string) (*Metadata, error) {
+	params := url.Values{
+		"path": {path},
+	}
+
+	var resp fileResponse
+	if err := c.do("stat", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) DeleteFile(fileID uint64) error {
+	params := url.Values{
+		"fileid": {strconv.FormatUint(fileID, 10)},
+	}
+
+	var resp Error
+	if err := c.do("deletefile", params, &resp); err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	return checkResult(c.Client.Do(req))
+	return resp.Err()
 }
 
-// CopyFile; https://docs.pcloud.com/methods/file/copyfile.html
-func (c *pCloudClient) CopyFile(fileID int, path string, toFolderID int, toName string, toPath string) error {
-	values := url.Values{
-		"auth": {*c.Auth},
+func (c *Client) DeleteFileByPath(path string) error {
+	params := url.Values{
+		"path": {path},
 	}
 
-	switch {
-	case fileID > 0:
-		values.Add("fileid", strconv.Itoa(fileID))
-	case path != "":
-		values.Add("path", path)
-	default:
-		return errors.New("bad params")
+	var resp Error
+	if err := c.do("deletefile", params, &resp); err != nil {
+		return err
 	}
-
-	switch {
-	case toFolderID > 0 && toName != "":
-		values.Add("tofolderid", strconv.Itoa(toFolderID))
-		values.Add("toname", toName)
-	case toPath != "":
-		values.Add("topath", toPath)
-	default:
-		return errors.New("bad params")
-	}
-
-	return checkResult(c.Client.Get(urlBuilder("copyfile", values)))
+	return resp.Err()
 }
 
-// DeleteFile; https://docs.pcloud.com/methods/file/deletefile.html
-func (c *pCloudClient) DeleteFile(fileID int, path string) error {
-	values := url.Values{
-		"auth": {*c.Auth},
+func (c *Client) RenameFile(fileID uint64, newName string) (*Metadata, error) {
+	params := url.Values{
+		"fileid": {strconv.FormatUint(fileID, 10)},
+		"toname": {newName},
 	}
 
-	switch {
-	case fileID > 0:
-		values.Add("fileid", strconv.Itoa(fileID))
-	case path != "":
-		values.Add("path", path)
-	default:
-		return errors.New("bad params")
+	var resp fileResponse
+	if err := c.do("renamefile", params, &resp); err != nil {
+		return nil, err
 	}
-
-	return checkResult(c.Client.Get(urlBuilder("deletefile", values)))
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
 }
 
-// RenameFile; https://docs.pcloud.com/methods/file/renamefile.html
-func (c *pCloudClient) RenameFile(fileID int, path string, toPath string, toFolderID int, toName string) error {
-	values := url.Values{
-		"auth": {*c.Auth},
+func (c *Client) MoveFile(fileID, toFolderID uint64) (*Metadata, error) {
+	params := url.Values{
+		"fileid":     {strconv.FormatUint(fileID, 10)},
+		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
 	}
 
-	switch {
-	case fileID > 0:
-		values.Add("fileid", strconv.Itoa(fileID))
-	case path != "":
-		values.Add("path", path)
-	default:
-		return errors.New("bad params")
+	var resp fileResponse
+	if err := c.do("renamefile", params, &resp); err != nil {
+		return nil, err
+	}
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
+}
+
+func (c *Client) CopyFile(fileID, toFolderID uint64) (*Metadata, error) {
+	params := url.Values{
+		"fileid":     {strconv.FormatUint(fileID, 10)},
+		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
 	}
 
-	switch {
-	case toPath != "":
-		values["topath"] = []string{toPath}
-	case toFolderID > 0 && toName != "":
-		values["toname"] = []string{toName}
-		values["tofolderid"] = []string{strconv.Itoa(toFolderID)}
-	default:
-		return errors.New("bad params")
+	var resp fileResponse
+	if err := c.do("copyfile", params, &resp); err != nil {
+		return nil, err
 	}
-
-	return checkResult(c.Client.Get(urlBuilder("renamefile", values)))
+	if err := resp.Err(); err != nil {
+		return nil, err
+	}
+	return &resp.Metadata, nil
 }

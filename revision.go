@@ -8,7 +8,6 @@ import (
 type revisionsResponse struct {
 	Error
 	Revisions []Revision `json:"revisions"`
-	Metadata  Metadata   `json:"metadata"`
 }
 
 type revertResponse struct {

@@ -28,25 +28,26 @@ type UploadOpts struct {
 	CreatedTime    int64
 }
 
-func (c *Client) Upload(folderID uint64, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
-	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-		"filename": {filename},
+func applyUploadOpts(params url.Values, opts *UploadOpts) {
+	if opts == nil {
+		return
 	}
-	if opts != nil {
-		if opts.NoPartial {
-			params.Set("nopartial", "1")
-		}
-		if opts.RenameIfExists {
-			params.Set("renameifexists", "1")
-		}
-		if opts.ModifiedTime > 0 {
-			params.Set("mtime", strconv.FormatInt(opts.ModifiedTime, 10))
-		}
-		if opts.CreatedTime > 0 {
-			params.Set("ctime", strconv.FormatInt(opts.CreatedTime, 10))
-		}
+	if opts.NoPartial {
+		params.Set("nopartial", "1")
 	}
+	if opts.RenameIfExists {
+		params.Set("renameifexists", "1")
+	}
+	if opts.ModifiedTime > 0 {
+		params.Set("mtime", strconv.FormatInt(opts.ModifiedTime, 10))
+	}
+	if opts.CreatedTime > 0 {
+		params.Set("ctime", strconv.FormatInt(opts.CreatedTime, 10))
+	}
+}
+
+func (c *Client) upload(params url.Values, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
+	applyUploadOpts(params, opts)
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
@@ -74,50 +75,20 @@ func (c *Client) Upload(folderID uint64, filename string, content io.Reader, opt
 	return &resp.Metadata[0], nil
 }
 
+func (c *Client) Upload(folderID uint64, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(folderID, 10)},
+		"filename": {filename},
+	}
+	return c.upload(params, filename, content, opts)
+}
+
 func (c *Client) UploadByPath(path, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
 	params := url.Values{
 		"path":     {path},
 		"filename": {filename},
 	}
-	if opts != nil {
-		if opts.NoPartial {
-			params.Set("nopartial", "1")
-		}
-		if opts.RenameIfExists {
-			params.Set("renameifexists", "1")
-		}
-		if opts.ModifiedTime > 0 {
-			params.Set("mtime", strconv.FormatInt(opts.ModifiedTime, 10))
-		}
-		if opts.CreatedTime > 0 {
-			params.Set("ctime", strconv.FormatInt(opts.CreatedTime, 10))
-		}
-	}
-
-	var body bytes.Buffer
-	writer := multipart.NewWriter(&body)
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := io.Copy(part, content); err != nil {
-		return nil, err
-	}
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-
-	var resp uploadResponse
-	if err := c.doPost("uploadfile", params, &body, writer.FormDataContentType(), &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
-	if len(resp.Metadata) == 0 {
-		return nil, fmt.Errorf("no metadata in response")
-	}
-	return &resp.Metadata[0], nil
+	return c.upload(params, filename, content, opts)
 }
 
 func (c *Client) Download(fileID uint64) (io.ReadCloser, error) {

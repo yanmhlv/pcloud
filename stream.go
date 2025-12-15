@@ -51,49 +51,31 @@ func (c *Client) GetFileLinkByPathWithOpts(path string, opts *FileLinkOpts) (*Fi
 	return &resp, nil
 }
 
-func (c *Client) GetVideoLink(fileID uint64) (*FileLink, error) {
+func (c *Client) getMediaLink(fileID uint64, endpoint string) (*FileLink, error) {
 	params := url.Values{
 		"fileid": {strconv.FormatUint(fileID, 10)},
 	}
 
 	var resp FileLink
-	if err := c.do("getvideolink", params, &resp); err != nil {
+	if err := c.do(endpoint, params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp, nil
+}
+
+func (c *Client) GetVideoLink(fileID uint64) (*FileLink, error) {
+	return c.getMediaLink(fileID, "getvideolink")
 }
 
 func (c *Client) GetAudioLink(fileID uint64) (*FileLink, error) {
-	params := url.Values{
-		"fileid": {strconv.FormatUint(fileID, 10)},
-	}
-
-	var resp FileLink
-	if err := c.do("getaudiolink", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
-	return &resp, nil
+	return c.getMediaLink(fileID, "getaudiolink")
 }
 
 func (c *Client) GetHLSLink(fileID uint64) (*FileLink, error) {
-	params := url.Values{
-		"fileid": {strconv.FormatUint(fileID, 10)},
-	}
-
-	var resp FileLink
-	if err := c.do("gethlslink", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
-	return &resp, nil
+	return c.getMediaLink(fileID, "gethlslink")
 }
 
 func applyLinkOpts(params url.Values, opts *FileLinkOpts) {

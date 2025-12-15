@@ -47,31 +47,7 @@ func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string,
 		"folderid": {strconv.FormatUint(folderID, 10)},
 		"mail":     {email},
 	}
-
-	if perms.CanRead {
-		params.Set("canread", "1")
-	}
-	if perms.CanCreate {
-		params.Set("cancreate", "1")
-	}
-	if perms.CanModify {
-		params.Set("canmodify", "1")
-	}
-	if perms.CanDelete {
-		params.Set("candelete", "1")
-	}
-	if opts != nil && opts.Message != "" {
-		params.Set("message", opts.Message)
-	}
-
-	var resp Share
-	if err := c.do(ctx, "sharefolder", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
-	return &resp, nil
+	return c.shareFolder(ctx, params, perms, opts)
 }
 
 func (c *Client) ShareFolderByPath(ctx context.Context, path string, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
@@ -79,7 +55,10 @@ func (c *Client) ShareFolderByPath(ctx context.Context, path string, email strin
 		"path": {path},
 		"mail": {email},
 	}
+	return c.shareFolder(ctx, params, perms, opts)
+}
 
+func (c *Client) shareFolder(ctx context.Context, params url.Values, perms SharePermissions, opts *ShareOpts) (*Share, error) {
 	if perms.CanRead {
 		params.Set("canread", "1")
 	}

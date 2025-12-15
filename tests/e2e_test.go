@@ -194,7 +194,7 @@ func TestFiles(t *testing.T) {
 	})
 
 	t.Run("Download", func(t *testing.T) {
-		body, err := c.Download(ctx, fileID)
+		body, err := c.Download(ctx, fileID, nil)
 		if err != nil {
 			t.Fatalf("download failed: %v", err)
 		}
@@ -293,7 +293,7 @@ func TestRevisions(t *testing.T) {
 			t.Fatalf("revert revision failed: %v", err)
 		}
 
-		body, _ := c.Download(ctx, fileID)
+		body, _ := c.Download(ctx, fileID, nil)
 		defer body.Close()
 		content, _ := io.ReadAll(body)
 		if !bytes.Equal(content, content1) {

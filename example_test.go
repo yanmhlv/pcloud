@@ -194,7 +194,7 @@ func ExampleClient_Download() {
 	c.Login(ctx, "user@example.com", "password")
 	defer c.Logout(ctx)
 
-	body, err := c.Download(ctx, 12345)
+	body, err := c.Download(ctx, 12345, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

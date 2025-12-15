@@ -147,16 +147,11 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 	return &resp.Metadata, nil
 }
 
-func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64) (*Metadata, error) {
-	metadata, err := c.StatFolder(ctx, folderID)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, name string) (*Metadata, error) {
 	params := url.Values{
 		"folderid":   {strconv.FormatUint(folderID, 10)},
 		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
-		"toname":     {metadata.Name},
+		"toname":     {name},
 	}
 
 	var resp folderResponse

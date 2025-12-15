@@ -1,6 +1,7 @@
 package pcloud
 
 import (
+	"iter"
 	"net/url"
 	"strconv"
 )
@@ -192,4 +193,56 @@ func (c *Client) DeleteFolderRecursive(folderID uint64) error {
 		return err
 	}
 	return resp.Err()
+}
+
+func (c *Client) Walk(folderID uint64) iter.Seq2[Metadata, error] {
+	return func(yield func(Metadata, error) bool) {
+		folder, err := c.ListFolder(folderID, &ListFolderOpts{Recursive: true})
+		if err != nil {
+			yield(Metadata{}, err)
+			return
+		}
+
+		var walk func(items []Metadata) bool
+		walk = func(items []Metadata) bool {
+			for _, item := range items {
+				if !yield(item, nil) {
+					return false
+				}
+				if item.IsFolder && len(item.Contents) > 0 {
+					if !walk(item.Contents) {
+						return false
+					}
+				}
+			}
+			return true
+		}
+		walk(folder.Contents)
+	}
+}
+
+func (c *Client) WalkByPath(path string) iter.Seq2[Metadata, error] {
+	return func(yield func(Metadata, error) bool) {
+		folder, err := c.ListFolderByPath(path, &ListFolderOpts{Recursive: true})
+		if err != nil {
+			yield(Metadata{}, err)
+			return
+		}
+
+		var walk func(items []Metadata) bool
+		walk = func(items []Metadata) bool {
+			for _, item := range items {
+				if !yield(item, nil) {
+					return false
+				}
+				if item.IsFolder && len(item.Contents) > 0 {
+					if !walk(item.Contents) {
+						return false
+					}
+				}
+			}
+			return true
+		}
+		walk(folder.Contents)
+	}
 }

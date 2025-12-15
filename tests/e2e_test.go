@@ -365,3 +365,62 @@ func TestStreaming(t *testing.T) {
 		}
 	})
 }
+
+func TestWalk(t *testing.T) {
+	c := getClient(t)
+	defer c.Logout()
+
+	testFolder := "pcloud_walk_test_" + time.Now().Format("20060102150405")
+	folder, err := c.CreateFolder(0, testFolder)
+	if err != nil {
+		t.Fatalf("create test folder failed: %v", err)
+	}
+	defer c.DeleteFolderRecursive(folder.FolderID)
+
+	c.CreateFolder(folder.FolderID, "sub1")
+	sub2, _ := c.CreateFolder(folder.FolderID, "sub2")
+	c.CreateFolder(sub2.FolderID, "sub2_nested")
+	c.Upload(folder.FolderID, "file1.txt", bytes.NewReader([]byte("1")), nil)
+	c.Upload(sub2.FolderID, "file2.txt", bytes.NewReader([]byte("2")), nil)
+
+	t.Run("Walk", func(t *testing.T) {
+		var items []string
+		for item, err := range c.Walk(folder.FolderID) {
+			if err != nil {
+				t.Fatalf("walk failed: %v", err)
+			}
+			items = append(items, item.Name)
+		}
+
+		expected := []string{"sub1", "sub2", "sub2_nested", "file2.txt", "file1.txt"}
+		if len(items) != len(expected) {
+			t.Fatalf("expected %d items, got %d: %v", len(expected), len(items), items)
+		}
+
+		expectedSet := make(map[string]bool)
+		for _, e := range expected {
+			expectedSet[e] = true
+		}
+		for _, item := range items {
+			if !expectedSet[item] {
+				t.Fatalf("unexpected item: %s", item)
+			}
+		}
+	})
+
+	t.Run("WalkEarlyBreak", func(t *testing.T) {
+		count := 0
+		for _, err := range c.Walk(folder.FolderID) {
+			if err != nil {
+				t.Fatalf("walk failed: %v", err)
+			}
+			count++
+			if count >= 2 {
+				break
+			}
+		}
+		if count != 2 {
+			t.Fatalf("expected 2 items before break, got %d", count)
+		}
+	})
+}

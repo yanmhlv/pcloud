@@ -1,0 +1,141 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+
+linters:
+  default: none
+  enable:
+    # Essential
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+
+    # Security
+    - gosec
+    - bidichk
+
+    # Error handling
+    - errorlint
+    - nilnil
+
+    # Code quality
+    - gocritic
+    - revive
+    - unconvert
+    - unparam
+    - misspell
+    - whitespace
+    - predeclared
+    - goconst
+    - dupl
+    - nestif
+
+    # Complexity
+    - gocyclo
+
+    # Performance
+    - perfsprint
+
+    # Hygiene
+    - nolintlint
+    - nakedret
+    - usetesting
+
+    # HTTP safety
+    - bodyclose
+    - noctx
+
+    # Exhaustive switches
+    - exhaustive
+
+    # Modern Go
+    - intrange
+    - usestdlibvars
+
+  settings:
+    revive:
+      rules:
+        - name: blank-imports
+          disabled: true
+
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+
+    staticcheck:
+      checks:
+        - all
+        - -ST1000
+        - -ST1003
+        - -ST1016
+        - -ST1020
+        - -ST1021
+        - -ST1022
+        - -SA1019
+
+    gosec:
+      excludes:
+        - G104
+        - G402
+        - G404
+        - G108
+        - G110
+        - G305
+        - G401
+        - G406
+        - G507
+        - G501
+        - G505
+        - G112
+        - G115
+        - G301
+        - G302
+        - G304
+        - G204
+        - G103
+
+    errcheck:
+      exclude-functions:
+        - (io.Closer).Close
+        - (*os.File).Close
+        - (net/http.ResponseWriter).Write
+        - io.Copy
+
+    nakedret:
+      max-func-lines: 30
+
+    exhaustive:
+      default-signifies-exhaustive: true
+
+    gocyclo:
+      min-complexity: 15
+
+    dupl:
+      threshold: 200
+
+    nestif:
+      min-complexity: 4
+
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+          - gocyclo
+          - gocritic
+      - path: example_test\.go
+        linters:
+          - errcheck
+          - gocritic

@@ -42,113 +42,7 @@ type listSharesResponse struct {
 	Requests []Share `json:"requests"`
 }
 
-func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
-	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-		"mail":     {email},
-	}
-	return c.shareFolder(ctx, params, perms, opts)
-}
-
-func (c *Client) ShareFolderByPath(ctx context.Context, path string, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
-	params := url.Values{
-		"path": {path},
-		"mail": {email},
-	}
-	return c.shareFolder(ctx, params, perms, opts)
-}
-
-func (c *Client) shareFolder(ctx context.Context, params url.Values, perms SharePermissions, opts *ShareOpts) (*Share, error) {
-	if perms.CanRead {
-		params.Set("canread", "1")
-	}
-	if perms.CanCreate {
-		params.Set("cancreate", "1")
-	}
-	if perms.CanModify {
-		params.Set("canmodify", "1")
-	}
-	if perms.CanDelete {
-		params.Set("candelete", "1")
-	}
-	if opts != nil && opts.Message != "" {
-		params.Set("message", opts.Message)
-	}
-
-	var resp Share
-	if err := c.do(ctx, "sharefolder", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
-	return &resp, nil
-}
-
-func (c *Client) ListShares(ctx context.Context) ([]Share, []Share, error) {
-	var resp listSharesResponse
-	if err := c.do(ctx, "listshares", url.Values{}, &resp); err != nil {
-		return nil, nil, err
-	}
-	if err := resp.Err(); err != nil {
-		return nil, nil, err
-	}
-	return resp.Shares, resp.Requests, nil
-}
-
-func (c *Client) AcceptShare(ctx context.Context, shareRequestID uint64) error {
-	params := url.Values{
-		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
-	}
-
-	var resp Error
-	if err := c.do(ctx, "acceptshare", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
-}
-
-func (c *Client) DeclineShare(ctx context.Context, shareRequestID uint64) error {
-	params := url.Values{
-		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
-	}
-
-	var resp Error
-	if err := c.do(ctx, "declineshare", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
-}
-
-func (c *Client) RemoveShare(ctx context.Context, shareID uint64) error {
-	params := url.Values{
-		"shareid": {strconv.FormatUint(shareID, 10)},
-	}
-
-	var resp Error
-	if err := c.do(ctx, "removeshare", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
-}
-
-func (c *Client) CancelShareRequest(ctx context.Context, shareRequestID uint64) error {
-	params := url.Values{
-		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
-	}
-
-	var resp Error
-	if err := c.do(ctx, "cancelsharerequest", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
-}
-
-func (c *Client) ChangeShare(ctx context.Context, shareID uint64, perms SharePermissions) error {
-	params := url.Values{
-		"shareid": {strconv.FormatUint(shareID, 10)},
-	}
-
+func applyPermissions(params url.Values, perms SharePermissions) {
 	if perms.CanRead {
 		params.Set("canread", "1")
 	} else {
@@ -169,10 +63,87 @@ func (c *Client) ChangeShare(ctx context.Context, shareID uint64, perms SharePer
 	} else {
 		params.Set("candelete", "0")
 	}
+}
+
+func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
+	params := url.Values{
+		"folderid": {strconv.FormatUint(folderID, 10)},
+		"mail":     {email},
+	}
+	return c.shareFolder(ctx, params, perms, opts)
+}
+
+func (c *Client) ShareFolderByPath(ctx context.Context, path string, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
+	params := url.Values{
+		"path": {path},
+		"mail": {email},
+	}
+	return c.shareFolder(ctx, params, perms, opts)
+}
+
+func (c *Client) shareFolder(ctx context.Context, params url.Values, perms SharePermissions, opts *ShareOpts) (*Share, error) {
+	applyPermissions(params, perms)
+	if opts != nil && opts.Message != "" {
+		params.Set("message", opts.Message)
+	}
+
+	var resp Share
+	if err := c.do(ctx, "sharefolder", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (c *Client) ListShares(ctx context.Context) ([]Share, []Share, error) {
+	var resp listSharesResponse
+	if err := c.do(ctx, "listshares", url.Values{}, &resp); err != nil {
+		return nil, nil, err
+	}
+	return resp.Shares, resp.Requests, nil
+}
+
+func (c *Client) AcceptShare(ctx context.Context, shareRequestID uint64) error {
+	params := url.Values{
+		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
+	}
 
 	var resp Error
-	if err := c.do(ctx, "changeshare", params, &resp); err != nil {
-		return err
+	return c.do(ctx, "acceptshare", params, &resp)
+}
+
+func (c *Client) DeclineShare(ctx context.Context, shareRequestID uint64) error {
+	params := url.Values{
+		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
 	}
-	return resp.Err()
+
+	var resp Error
+	return c.do(ctx, "declineshare", params, &resp)
+}
+
+func (c *Client) RemoveShare(ctx context.Context, shareID uint64) error {
+	params := url.Values{
+		"shareid": {strconv.FormatUint(shareID, 10)},
+	}
+
+	var resp Error
+	return c.do(ctx, "removeshare", params, &resp)
+}
+
+func (c *Client) CancelShareRequest(ctx context.Context, shareRequestID uint64) error {
+	params := url.Values{
+		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
+	}
+
+	var resp Error
+	return c.do(ctx, "cancelsharerequest", params, &resp)
+}
+
+func (c *Client) ChangeShare(ctx context.Context, shareID uint64, perms SharePermissions) error {
+	params := url.Values{
+		"shareid": {strconv.FormatUint(shareID, 10)},
+	}
+	applyPermissions(params, perms)
+
+	var resp Error
+	return c.do(ctx, "changeshare", params, &resp)
 }

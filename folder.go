@@ -47,9 +47,6 @@ func (c *Client) ListFolder(ctx context.Context, folderID uint64, opts *ListFold
 	if err := c.do(ctx, "listfolder", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -63,9 +60,6 @@ func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFo
 	if err := c.do(ctx, "listfolder", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -76,9 +70,6 @@ func (c *Client) StatFolder(ctx context.Context, folderID uint64) (*Metadata, er
 
 	var resp folderResponse
 	if err := c.do(ctx, "stat", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
@@ -94,9 +85,6 @@ func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string)
 	if err := c.do(ctx, "createfolder", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -107,9 +95,6 @@ func (c *Client) CreateFolderByPath(ctx context.Context, path string) (*Metadata
 
 	var resp folderResponse
 	if err := c.do(ctx, "createfolder", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
@@ -125,9 +110,6 @@ func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, n
 	if err := c.do(ctx, "createfolderifnotexists", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -139,9 +121,6 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 
 	var resp folderResponse
 	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
@@ -158,9 +137,6 @@ func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, na
 	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -174,9 +150,6 @@ func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*
 	if err := c.do(ctx, "copyfolder", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -186,10 +159,7 @@ func (c *Client) DeleteFolder(ctx context.Context, folderID uint64) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletefolder", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
+	return c.do(ctx, "deletefolder", params, &resp)
 }
 
 func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) error {
@@ -198,10 +168,7 @@ func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) err
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletefolderrecursive", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
+	return c.do(ctx, "deletefolderrecursive", params, &resp)
 }
 
 func walkContents(contents []Metadata, yield func(Metadata, error) bool) {

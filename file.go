@@ -39,6 +39,7 @@ type DownloadOpts struct {
 
 type progressReader struct {
 	reader     io.Reader
+	closer     io.Closer
 	total      int64
 	read       int64
 	onProgress ProgressFunc
@@ -54,10 +55,29 @@ func (pr *progressReader) Read(p []byte) (int, error) {
 }
 
 func (pr *progressReader) Close() error {
-	if c, ok := pr.reader.(io.Closer); ok {
-		return c.Close()
+	if pr.closer != nil {
+		return pr.closer.Close()
 	}
 	return nil
+}
+
+func getContentSize(r io.Reader) (int64, error) {
+	seeker, ok := r.(io.Seeker)
+	if !ok {
+		return -1, nil
+	}
+	pos, err := seeker.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return -1, fmt.Errorf("seek current: %w", err)
+	}
+	end, err := seeker.Seek(0, io.SeekEnd)
+	if err != nil {
+		return -1, fmt.Errorf("seek end: %w", err)
+	}
+	if _, err := seeker.Seek(pos, io.SeekStart); err != nil {
+		return -1, fmt.Errorf("seek start: %w", err)
+	}
+	return end - pos, nil
 }
 
 func applyUploadOpts(params url.Values, opts *UploadOpts) {
@@ -84,19 +104,21 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 	var contentSize int64 = -1
 	if sizer, ok := content.(interface{ Len() int }); ok {
 		contentSize = int64(sizer.Len())
-	} else if seeker, ok := content.(io.Seeker); ok {
-		pos, _ := seeker.Seek(0, io.SeekCurrent)
-		end, err := seeker.Seek(0, io.SeekEnd)
-		if err == nil {
-			contentSize = end - pos
-			_, _ = seeker.Seek(pos, io.SeekStart)
+	}
+
+	if contentSize < 0 {
+		size, err := getContentSize(content)
+		if err != nil {
+			return nil, err
 		}
+		contentSize = size
 	}
 
 	readContent := content
 	if opts != nil && opts.OnProgress != nil && contentSize > 0 {
 		readContent = &progressReader{
 			reader:     content,
+			closer:     nil,
 			total:      contentSize,
 			onProgress: opts.OnProgress,
 		}
@@ -117,9 +139,6 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 
 	var resp uploadResponse
 	if err := c.doPost(ctx, "uploadfile", params, &body, writer.FormDataContentType(), &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	if len(resp.Metadata) == 0 {
@@ -178,6 +197,7 @@ func (c *Client) downloadFromLink(ctx context.Context, link *FileLink, opts *Dow
 	if opts != nil && opts.OnProgress != nil {
 		return &progressReader{
 			reader:     resp.Body,
+			closer:     resp.Body,
 			total:      resp.ContentLength,
 			onProgress: opts.OnProgress,
 		}, nil
@@ -194,9 +214,6 @@ func (c *Client) Stat(ctx context.Context, fileID uint64) (*Metadata, error) {
 	if err := c.do(ctx, "stat", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -209,9 +226,6 @@ func (c *Client) StatByPath(ctx context.Context, path string) (*Metadata, error)
 	if err := c.do(ctx, "stat", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -221,10 +235,7 @@ func (c *Client) DeleteFile(ctx context.Context, fileID uint64) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletefile", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
+	return c.do(ctx, "deletefile", params, &resp)
 }
 
 func (c *Client) DeleteFileByPath(ctx context.Context, path string) error {
@@ -233,10 +244,7 @@ func (c *Client) DeleteFileByPath(ctx context.Context, path string) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletefile", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
+	return c.do(ctx, "deletefile", params, &resp)
 }
 
 func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) (*Metadata, error) {
@@ -247,9 +255,6 @@ func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) 
 
 	var resp fileResponse
 	if err := c.do(ctx, "renamefile", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
@@ -266,9 +271,6 @@ func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64, name s
 	if err := c.do(ctx, "renamefile", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -280,9 +282,6 @@ func (c *Client) CopyFile(ctx context.Context, fileID, toFolderID uint64) (*Meta
 
 	var resp fileResponse
 	if err := c.do(ctx, "copyfile", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil

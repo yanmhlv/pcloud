@@ -3,6 +3,7 @@ package pcloud
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -101,11 +102,11 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 		end, err := seeker.Seek(0, io.SeekEnd)
 		if err == nil {
 			contentSize = end - pos
-			seeker.Seek(pos, io.SeekStart)
+			_, _ = seeker.Seek(pos, io.SeekStart)
 		}
 	}
 
-	var readContent io.Reader = content
+	readContent := content
 	if opts != nil && opts.OnProgress != nil && contentSize > 0 {
 		readContent = &progressReader{
 			reader:     content,
@@ -135,7 +136,7 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 		return nil, err
 	}
 	if len(resp.Metadata) == 0 {
-		return nil, fmt.Errorf("no metadata in response")
+		return nil, errors.New("no metadata in response")
 	}
 	return &resp.Metadata[0], nil
 }

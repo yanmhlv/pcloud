@@ -42,16 +42,6 @@ type listSharesResponse struct {
 	Requests []Share `json:"requests"`
 }
 
-func permissionsToAccess(perms SharePermissions) string {
-	access := 0
-	if perms.CanModify {
-		access = 2
-	} else if perms.CanCreate {
-		access = 1
-	}
-	return strconv.Itoa(access)
-}
-
 func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
 	params := url.Values{
 		"folderid": {strconv.FormatUint(folderID, 10)},

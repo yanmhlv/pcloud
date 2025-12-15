@@ -46,9 +46,6 @@ func TestAuth(t *testing.T) {
 		if err := c.Login(ctx, username, password); err != nil {
 			t.Fatalf("login failed: %v", err)
 		}
-		if c.Auth() == "" {
-			t.Fatal("auth token is empty after login")
-		}
 	})
 
 	t.Run("UserInfo", func(t *testing.T) {
@@ -67,9 +64,6 @@ func TestAuth(t *testing.T) {
 	t.Run("Logout", func(t *testing.T) {
 		if err := c.Logout(ctx); err != nil {
 			t.Fatalf("logout failed: %v", err)
-		}
-		if c.Auth() != "" {
-			t.Fatal("auth token should be empty after logout")
 		}
 	})
 }

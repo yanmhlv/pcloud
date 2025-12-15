@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"golang.org/x/oauth2"
 	"golang.org/x/time/rate"
 )
 
@@ -19,11 +20,12 @@ const (
 )
 
 type Client struct {
-	baseURL    string
-	httpClient *http.Client
-	auth       string
-	logger     *slog.Logger
-	limiter    *rate.Limiter
+	baseURL     string
+	httpClient  *http.Client
+	auth        string
+	tokenSource oauth2.TokenSource
+	logger      *slog.Logger
+	limiter     *rate.Limiter
 }
 
 func NewClient(baseURL string) *Client {
@@ -53,17 +55,13 @@ func (c *Client) SetRateLimit(rpm float64) {
 	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), 1)
 }
 
-func (c *Client) SetAuth(auth string) {
-	c.auth = auth
-}
-
-func (c *Client) Auth() string {
-	return c.auth
+func (c *Client) SetTokenSource(ts oauth2.TokenSource) {
+	c.tokenSource = ts
 }
 
 func (c *Client) do(ctx context.Context, method string, params url.Values, result any) error {
-	if c.auth != "" {
-		params.Set("auth", c.auth)
+	if err := c.setAuth(params); err != nil {
+		return err
 	}
 
 	c.logger.Debug("request", "method", method)
@@ -92,8 +90,8 @@ func (c *Client) do(ctx context.Context, method string, params url.Values, resul
 }
 
 func (c *Client) doPost(ctx context.Context, method string, params url.Values, body io.Reader, contentType string, result any) error {
-	if c.auth != "" {
-		params.Set("auth", c.auth)
+	if err := c.setAuth(params); err != nil {
+		return err
 	}
 
 	c.logger.Debug("request", "method", method)
@@ -118,6 +116,21 @@ func (c *Client) doPost(ctx context.Context, method string, params url.Values, b
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
 		c.logger.Error("decode failed", "method", method, "error", err)
 		return err
+	}
+	return nil
+}
+
+func (c *Client) setAuth(params url.Values) error {
+	if c.tokenSource != nil {
+		token, err := c.tokenSource.Token()
+		if err != nil {
+			return err
+		}
+		params.Set("auth", token.AccessToken)
+		return nil
+	}
+	if c.auth != "" {
+		params.Set("auth", c.auth)
 	}
 	return nil
 }

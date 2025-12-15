@@ -38,7 +38,7 @@ func ExampleClient_Login() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("logged in, token:", c.Auth())
+	fmt.Println("logged in successfully")
 }
 
 func ExampleClient_UserInfo() {

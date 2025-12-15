@@ -8,10 +8,10 @@
 //	err := c.Login("user@example.com", "password")
 //	defer c.Logout()
 //
-// Alternatively, set an existing auth token directly:
+// Alternatively, use an OAuth2 token:
 //
 //	c := pcloud.NewClient(pcloud.BaseURLUS)
-//	c.SetAuth("existing-token")
+//	c.SetTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "token"}))
 //
 // # Folders
 //

@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"testing"
@@ -10,7 +11,7 @@ import (
 	"github.com/yanmhlv/pcloud"
 )
 
-func getClient(t *testing.T) *pcloud.Client {
+func getClient(t *testing.T) (*pcloud.Client, context.Context) {
 	t.Helper()
 
 	username := os.Getenv("PCLOUD_USERNAME")
@@ -21,12 +22,13 @@ func getClient(t *testing.T) *pcloud.Client {
 
 	baseURL := os.Getenv("PCLOUD_BASE_URL")
 	c := pcloud.NewClient(baseURL)
+	ctx := context.Background()
 
-	if err := c.Login(username, password); err != nil {
+	if err := c.Login(ctx, username, password); err != nil {
 		t.Fatalf("login failed: %v", err)
 	}
 
-	return c
+	return c, ctx
 }
 
 func TestAuth(t *testing.T) {
@@ -38,9 +40,10 @@ func TestAuth(t *testing.T) {
 
 	baseURL := os.Getenv("PCLOUD_BASE_URL")
 	c := pcloud.NewClient(baseURL)
+	ctx := context.Background()
 
 	t.Run("Login", func(t *testing.T) {
-		if err := c.Login(username, password); err != nil {
+		if err := c.Login(ctx, username, password); err != nil {
 			t.Fatalf("login failed: %v", err)
 		}
 		if c.Auth() == "" {
@@ -49,7 +52,7 @@ func TestAuth(t *testing.T) {
 	})
 
 	t.Run("UserInfo", func(t *testing.T) {
-		info, err := c.UserInfo()
+		info, err := c.UserInfo(ctx)
 		if err != nil {
 			t.Fatalf("userinfo failed: %v", err)
 		}
@@ -62,7 +65,7 @@ func TestAuth(t *testing.T) {
 	})
 
 	t.Run("Logout", func(t *testing.T) {
-		if err := c.Logout(); err != nil {
+		if err := c.Logout(ctx); err != nil {
 			t.Fatalf("logout failed: %v", err)
 		}
 		if c.Auth() != "" {
@@ -72,14 +75,14 @@ func TestAuth(t *testing.T) {
 }
 
 func TestFolders(t *testing.T) {
-	c := getClient(t)
-	defer c.Logout()
+	c, ctx := getClient(t)
+	defer c.Logout(ctx)
 
 	testFolder := "pcloud_test_" + time.Now().Format("20060102150405")
 	var folderID uint64
 
 	t.Run("CreateFolder", func(t *testing.T) {
-		folder, err := c.CreateFolder(0, testFolder)
+		folder, err := c.CreateFolder(ctx, 0, testFolder)
 		if err != nil {
 			t.Fatalf("create folder failed: %v", err)
 		}
@@ -90,7 +93,7 @@ func TestFolders(t *testing.T) {
 	})
 
 	t.Run("ListFolder", func(t *testing.T) {
-		folder, err := c.ListFolder(0, nil)
+		folder, err := c.ListFolder(ctx, 0, nil)
 		if err != nil {
 			t.Fatalf("list folder failed: %v", err)
 		}
@@ -100,7 +103,7 @@ func TestFolders(t *testing.T) {
 	})
 
 	t.Run("CreateFolderIfNotExists", func(t *testing.T) {
-		folder, err := c.CreateFolderIfNotExists(folderID, "subfolder")
+		folder, err := c.CreateFolderIfNotExists(ctx, folderID, "subfolder")
 		if err != nil {
 			t.Fatalf("create subfolder failed: %v", err)
 		}
@@ -108,7 +111,7 @@ func TestFolders(t *testing.T) {
 			t.Fatalf("expected name subfolder, got %s", folder.Name)
 		}
 
-		folder2, err := c.CreateFolderIfNotExists(folderID, "subfolder")
+		folder2, err := c.CreateFolderIfNotExists(ctx, folderID, "subfolder")
 		if err != nil {
 			t.Fatalf("create existing subfolder failed: %v", err)
 		}
@@ -119,7 +122,7 @@ func TestFolders(t *testing.T) {
 
 	t.Run("RenameFolder", func(t *testing.T) {
 		newName := testFolder + "_renamed"
-		folder, err := c.RenameFolder(folderID, newName)
+		folder, err := c.RenameFolder(ctx, folderID, newName)
 		if err != nil {
 			t.Fatalf("rename folder failed: %v", err)
 		}
@@ -127,7 +130,7 @@ func TestFolders(t *testing.T) {
 			t.Fatalf("expected name %s, got %s", newName, folder.Name)
 		}
 
-		folder, _ = c.RenameFolder(folderID, testFolder)
+		folder, _ = c.RenameFolder(ctx, folderID, testFolder)
 		if folder.Name != testFolder {
 			t.Fatal("rename back failed")
 		}
@@ -135,14 +138,14 @@ func TestFolders(t *testing.T) {
 
 	t.Run("CopyFolder", func(t *testing.T) {
 		copyName := testFolder + "_copy"
-		copyFolder, err := c.CreateFolder(0, copyName)
+		copyFolder, err := c.CreateFolder(ctx, 0, copyName)
 		if err != nil {
 			t.Fatalf("create copy target failed: %v", err)
 		}
-		defer c.DeleteFolderRecursive(copyFolder.FolderID)
+		defer c.DeleteFolderRecursive(ctx, copyFolder.FolderID)
 
-		subFolder, _ := c.CreateFolder(folderID, "to_copy")
-		copied, err := c.CopyFolder(subFolder.FolderID, copyFolder.FolderID)
+		subFolder, _ := c.CreateFolder(ctx, folderID, "to_copy")
+		copied, err := c.CopyFolder(ctx, subFolder.FolderID, copyFolder.FolderID)
 		if err != nil {
 			t.Fatalf("copy folder failed: %v", err)
 		}
@@ -152,28 +155,28 @@ func TestFolders(t *testing.T) {
 	})
 
 	t.Run("DeleteFolderRecursive", func(t *testing.T) {
-		if err := c.DeleteFolderRecursive(folderID); err != nil {
+		if err := c.DeleteFolderRecursive(ctx, folderID); err != nil {
 			t.Fatalf("delete folder recursive failed: %v", err)
 		}
 	})
 }
 
 func TestFiles(t *testing.T) {
-	c := getClient(t)
-	defer c.Logout()
+	c, ctx := getClient(t)
+	defer c.Logout(ctx)
 
 	testFolder := "pcloud_file_test_" + time.Now().Format("20060102150405")
-	folder, err := c.CreateFolder(0, testFolder)
+	folder, err := c.CreateFolder(ctx, 0, testFolder)
 	if err != nil {
 		t.Fatalf("create test folder failed: %v", err)
 	}
-	defer c.DeleteFolderRecursive(folder.FolderID)
+	defer c.DeleteFolderRecursive(ctx, folder.FolderID)
 
 	testContent := []byte("hello pcloud test content")
 	var fileID uint64
 
 	t.Run("Upload", func(t *testing.T) {
-		meta, err := c.Upload(folder.FolderID, "test.txt", bytes.NewReader(testContent), nil)
+		meta, err := c.Upload(ctx, folder.FolderID, "test.txt", bytes.NewReader(testContent), nil)
 		if err != nil {
 			t.Fatalf("upload failed: %v", err)
 		}
@@ -187,7 +190,7 @@ func TestFiles(t *testing.T) {
 	})
 
 	t.Run("Stat", func(t *testing.T) {
-		meta, err := c.Stat(fileID)
+		meta, err := c.Stat(ctx, fileID)
 		if err != nil {
 			t.Fatalf("stat failed: %v", err)
 		}
@@ -197,7 +200,7 @@ func TestFiles(t *testing.T) {
 	})
 
 	t.Run("Download", func(t *testing.T) {
-		body, err := c.Download(fileID)
+		body, err := c.Download(ctx, fileID)
 		if err != nil {
 			t.Fatalf("download failed: %v", err)
 		}
@@ -213,7 +216,7 @@ func TestFiles(t *testing.T) {
 	})
 
 	t.Run("RenameFile", func(t *testing.T) {
-		meta, err := c.RenameFile(fileID, "renamed.txt")
+		meta, err := c.RenameFile(ctx, fileID, "renamed.txt")
 		if err != nil {
 			t.Fatalf("rename file failed: %v", err)
 		}
@@ -223,26 +226,26 @@ func TestFiles(t *testing.T) {
 	})
 
 	t.Run("CopyFile", func(t *testing.T) {
-		copyTarget, err := c.CreateFolder(folder.FolderID, "copy_target")
+		copyTarget, err := c.CreateFolder(ctx, folder.FolderID, "copy_target")
 		if err != nil {
 			t.Fatalf("create copy target folder failed: %v", err)
 		}
-		meta, err := c.CopyFile(fileID, copyTarget.FolderID)
+		meta, err := c.CopyFile(ctx, fileID, copyTarget.FolderID)
 		if err != nil {
 			t.Fatalf("copy file failed: %v", err)
 		}
 		if meta.FileID == fileID {
 			t.Fatal("copied file should have different id")
 		}
-		c.DeleteFile(meta.FileID)
+		c.DeleteFile(ctx, meta.FileID)
 	})
 
 	t.Run("DeleteFile", func(t *testing.T) {
-		if err := c.DeleteFile(fileID); err != nil {
+		if err := c.DeleteFile(ctx, fileID); err != nil {
 			t.Fatalf("delete file failed: %v", err)
 		}
 
-		_, err := c.Stat(fileID)
+		_, err := c.Stat(ctx, fileID)
 		if err == nil {
 			t.Fatal("stat should fail for deleted file")
 		}
@@ -250,32 +253,32 @@ func TestFiles(t *testing.T) {
 }
 
 func TestRevisions(t *testing.T) {
-	c := getClient(t)
-	defer c.Logout()
+	c, ctx := getClient(t)
+	defer c.Logout(ctx)
 
 	testFolder := "pcloud_rev_test_" + time.Now().Format("20060102150405")
-	folder, err := c.CreateFolder(0, testFolder)
+	folder, err := c.CreateFolder(ctx, 0, testFolder)
 	if err != nil {
 		t.Fatalf("create test folder failed: %v", err)
 	}
-	defer c.DeleteFolderRecursive(folder.FolderID)
+	defer c.DeleteFolderRecursive(ctx, folder.FolderID)
 
 	content1 := []byte("version 1")
 	content2 := []byte("version 2")
 
-	meta, err := c.Upload(folder.FolderID, "revtest.txt", bytes.NewReader(content1), nil)
+	meta, err := c.Upload(ctx, folder.FolderID, "revtest.txt", bytes.NewReader(content1), nil)
 	if err != nil {
 		t.Fatalf("upload v1 failed: %v", err)
 	}
 	fileID := meta.FileID
 
-	_, err = c.Upload(folder.FolderID, "revtest.txt", bytes.NewReader(content2), nil)
+	_, err = c.Upload(ctx, folder.FolderID, "revtest.txt", bytes.NewReader(content2), nil)
 	if err != nil {
 		t.Fatalf("upload v2 failed: %v", err)
 	}
 
 	t.Run("ListRevisions", func(t *testing.T) {
-		revs, err := c.ListRevisions(fileID)
+		revs, err := c.ListRevisions(ctx, fileID)
 		if err != nil {
 			t.Fatalf("list revisions failed: %v", err)
 		}
@@ -285,18 +288,18 @@ func TestRevisions(t *testing.T) {
 	})
 
 	t.Run("RevertRevision", func(t *testing.T) {
-		revs, _ := c.ListRevisions(fileID)
+		revs, _ := c.ListRevisions(ctx, fileID)
 		if len(revs) < 2 {
 			t.Skip("not enough revisions")
 		}
 
 		oldRev := revs[len(revs)-1]
-		_, err := c.RevertRevision(fileID, oldRev.RevisionID)
+		_, err := c.RevertRevision(ctx, fileID, oldRev.RevisionID)
 		if err != nil {
 			t.Fatalf("revert revision failed: %v", err)
 		}
 
-		body, _ := c.Download(fileID)
+		body, _ := c.Download(ctx, fileID)
 		defer body.Close()
 		content, _ := io.ReadAll(body)
 		if !bytes.Equal(content, content1) {
@@ -306,24 +309,24 @@ func TestRevisions(t *testing.T) {
 }
 
 func TestStreaming(t *testing.T) {
-	c := getClient(t)
-	defer c.Logout()
+	c, ctx := getClient(t)
+	defer c.Logout(ctx)
 
 	testFolder := "pcloud_stream_test_" + time.Now().Format("20060102150405")
-	folder, err := c.CreateFolder(0, testFolder)
+	folder, err := c.CreateFolder(ctx, 0, testFolder)
 	if err != nil {
 		t.Fatalf("create test folder failed: %v", err)
 	}
-	defer c.DeleteFolderRecursive(folder.FolderID)
+	defer c.DeleteFolderRecursive(ctx, folder.FolderID)
 
 	content := []byte("stream test content")
-	meta, err := c.Upload(folder.FolderID, "stream.txt", bytes.NewReader(content), nil)
+	meta, err := c.Upload(ctx, folder.FolderID, "stream.txt", bytes.NewReader(content), nil)
 	if err != nil {
 		t.Fatalf("upload failed: %v", err)
 	}
 
 	t.Run("GetFileLink", func(t *testing.T) {
-		link, err := c.GetFileLink(meta.FileID)
+		link, err := c.GetFileLink(ctx, meta.FileID)
 		if err != nil {
 			t.Fatalf("get file link failed: %v", err)
 		}
@@ -340,7 +343,7 @@ func TestStreaming(t *testing.T) {
 	})
 
 	t.Run("GetFileLinkWithOpts", func(t *testing.T) {
-		link, err := c.GetFileLinkWithOpts(meta.FileID, &pcloud.FileLinkOpts{
+		link, err := c.GetFileLinkWithOpts(ctx, meta.FileID, &pcloud.FileLinkOpts{
 			ForceDownload: true,
 		})
 		if err != nil {
@@ -353,25 +356,25 @@ func TestStreaming(t *testing.T) {
 }
 
 func TestWalk(t *testing.T) {
-	c := getClient(t)
-	defer c.Logout()
+	c, ctx := getClient(t)
+	defer c.Logout(ctx)
 
 	testFolder := "pcloud_walk_test_" + time.Now().Format("20060102150405")
-	folder, err := c.CreateFolder(0, testFolder)
+	folder, err := c.CreateFolder(ctx, 0, testFolder)
 	if err != nil {
 		t.Fatalf("create test folder failed: %v", err)
 	}
-	defer c.DeleteFolderRecursive(folder.FolderID)
+	defer c.DeleteFolderRecursive(ctx, folder.FolderID)
 
-	c.CreateFolder(folder.FolderID, "sub1")
-	sub2, _ := c.CreateFolder(folder.FolderID, "sub2")
-	c.CreateFolder(sub2.FolderID, "sub2_nested")
-	c.Upload(folder.FolderID, "file1.txt", bytes.NewReader([]byte("1")), nil)
-	c.Upload(sub2.FolderID, "file2.txt", bytes.NewReader([]byte("2")), nil)
+	c.CreateFolder(ctx, folder.FolderID, "sub1")
+	sub2, _ := c.CreateFolder(ctx, folder.FolderID, "sub2")
+	c.CreateFolder(ctx, sub2.FolderID, "sub2_nested")
+	c.Upload(ctx, folder.FolderID, "file1.txt", bytes.NewReader([]byte("1")), nil)
+	c.Upload(ctx, sub2.FolderID, "file2.txt", bytes.NewReader([]byte("2")), nil)
 
 	t.Run("Walk", func(t *testing.T) {
 		var items []string
-		for item, err := range c.Walk(folder.FolderID) {
+		for item, err := range c.Walk(ctx, folder.FolderID) {
 			if err != nil {
 				t.Fatalf("walk failed: %v", err)
 			}
@@ -396,7 +399,7 @@ func TestWalk(t *testing.T) {
 
 	t.Run("WalkEarlyBreak", func(t *testing.T) {
 		count := 0
-		for _, err := range c.Walk(folder.FolderID) {
+		for _, err := range c.Walk(ctx, folder.FolderID) {
 			if err != nil {
 				t.Fatalf("walk failed: %v", err)
 			}

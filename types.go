@@ -87,15 +87,15 @@ type Revision struct {
 
 type UserInfo struct {
 	Error
-	UserID         uint64    `json:"userid"`
-	Email          string    `json:"email"`
-	EmailVerified  bool      `json:"emailverified"`
+	UserID         uint64 `json:"userid"`
+	Email          string `json:"email"`
+	EmailVerified  bool   `json:"emailverified"`
 	Registered     Time   `json:"registered"`
 	Language       string `json:"language"`
 	Premium        bool   `json:"premium"`
 	PremiumExpires Time   `json:"premiumexpires,omitempty"`
-	Quota          uint64    `json:"quota"`
-	UsedQuota      uint64    `json:"usedquota"`
+	Quota          uint64 `json:"quota"`
+	UsedQuota      uint64 `json:"usedquota"`
 }
 
 type FileLink struct {

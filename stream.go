@@ -1,6 +1,7 @@
 package pcloud
 
 import (
+	"context"
 	"net/url"
 	"strconv"
 )
@@ -11,22 +12,22 @@ type FileLinkOpts struct {
 	MaxSpeed      int
 }
 
-func (c *Client) GetFileLink(fileID uint64) (*FileLink, error) {
-	return c.GetFileLinkWithOpts(fileID, nil)
+func (c *Client) GetFileLink(ctx context.Context, fileID uint64) (*FileLink, error) {
+	return c.GetFileLinkWithOpts(ctx, fileID, nil)
 }
 
-func (c *Client) GetFileLinkByPath(path string) (*FileLink, error) {
-	return c.GetFileLinkByPathWithOpts(path, nil)
+func (c *Client) GetFileLinkByPath(ctx context.Context, path string) (*FileLink, error) {
+	return c.GetFileLinkByPathWithOpts(ctx, path, nil)
 }
 
-func (c *Client) GetFileLinkWithOpts(fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
+func (c *Client) GetFileLinkWithOpts(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
 	params := url.Values{
 		"fileid": {strconv.FormatUint(fileID, 10)},
 	}
 	applyLinkOpts(params, opts)
 
 	var resp FileLink
-	if err := c.do("getfilelink", params, &resp); err != nil {
+	if err := c.do(ctx, "getfilelink", params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {
@@ -35,14 +36,14 @@ func (c *Client) GetFileLinkWithOpts(fileID uint64, opts *FileLinkOpts) (*FileLi
 	return &resp, nil
 }
 
-func (c *Client) GetFileLinkByPathWithOpts(path string, opts *FileLinkOpts) (*FileLink, error) {
+func (c *Client) GetFileLinkByPathWithOpts(ctx context.Context, path string, opts *FileLinkOpts) (*FileLink, error) {
 	params := url.Values{
 		"path": {path},
 	}
 	applyLinkOpts(params, opts)
 
 	var resp FileLink
-	if err := c.do("getfilelink", params, &resp); err != nil {
+	if err := c.do(ctx, "getfilelink", params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {
@@ -51,13 +52,13 @@ func (c *Client) GetFileLinkByPathWithOpts(path string, opts *FileLinkOpts) (*Fi
 	return &resp, nil
 }
 
-func (c *Client) getMediaLink(fileID uint64, endpoint string) (*FileLink, error) {
+func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint string) (*FileLink, error) {
 	params := url.Values{
 		"fileid": {strconv.FormatUint(fileID, 10)},
 	}
 
 	var resp FileLink
-	if err := c.do(endpoint, params, &resp); err != nil {
+	if err := c.do(ctx, endpoint, params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {
@@ -66,16 +67,16 @@ func (c *Client) getMediaLink(fileID uint64, endpoint string) (*FileLink, error)
 	return &resp, nil
 }
 
-func (c *Client) GetVideoLink(fileID uint64) (*FileLink, error) {
-	return c.getMediaLink(fileID, "getvideolink")
+func (c *Client) GetVideoLink(ctx context.Context, fileID uint64) (*FileLink, error) {
+	return c.getMediaLink(ctx, fileID, "getvideolink")
 }
 
-func (c *Client) GetAudioLink(fileID uint64) (*FileLink, error) {
-	return c.getMediaLink(fileID, "getaudiolink")
+func (c *Client) GetAudioLink(ctx context.Context, fileID uint64) (*FileLink, error) {
+	return c.getMediaLink(ctx, fileID, "getaudiolink")
 }
 
-func (c *Client) GetHLSLink(fileID uint64) (*FileLink, error) {
-	return c.getMediaLink(fileID, "gethlslink")
+func (c *Client) GetHLSLink(ctx context.Context, fileID uint64) (*FileLink, error) {
+	return c.getMediaLink(ctx, fileID, "gethlslink")
 }
 
 func applyLinkOpts(params url.Values, opts *FileLinkOpts) {

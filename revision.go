@@ -1,6 +1,7 @@
 package pcloud
 
 import (
+	"context"
 	"net/url"
 	"strconv"
 )
@@ -15,13 +16,13 @@ type revertResponse struct {
 	Metadata Metadata `json:"metadata"`
 }
 
-func (c *Client) ListRevisions(fileID uint64) ([]Revision, error) {
+func (c *Client) ListRevisions(ctx context.Context, fileID uint64) ([]Revision, error) {
 	params := url.Values{
 		"fileid": {strconv.FormatUint(fileID, 10)},
 	}
 
 	var resp revisionsResponse
-	if err := c.do("listrevisions", params, &resp); err != nil {
+	if err := c.do(ctx, "listrevisions", params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {
@@ -30,13 +31,13 @@ func (c *Client) ListRevisions(fileID uint64) ([]Revision, error) {
 	return resp.Revisions, nil
 }
 
-func (c *Client) ListRevisionsByPath(path string) ([]Revision, error) {
+func (c *Client) ListRevisionsByPath(ctx context.Context, path string) ([]Revision, error) {
 	params := url.Values{
 		"path": {path},
 	}
 
 	var resp revisionsResponse
-	if err := c.do("listrevisions", params, &resp); err != nil {
+	if err := c.do(ctx, "listrevisions", params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {
@@ -45,14 +46,14 @@ func (c *Client) ListRevisionsByPath(path string) ([]Revision, error) {
 	return resp.Revisions, nil
 }
 
-func (c *Client) RevertRevision(fileID, revisionID uint64) (*Metadata, error) {
+func (c *Client) RevertRevision(ctx context.Context, fileID, revisionID uint64) (*Metadata, error) {
 	params := url.Values{
 		"fileid":     {strconv.FormatUint(fileID, 10)},
 		"revisionid": {strconv.FormatUint(revisionID, 10)},
 	}
 
 	var resp revertResponse
-	if err := c.do("revertrevision", params, &resp); err != nil {
+	if err := c.do(ctx, "revertrevision", params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {
@@ -61,14 +62,14 @@ func (c *Client) RevertRevision(fileID, revisionID uint64) (*Metadata, error) {
 	return &resp.Metadata, nil
 }
 
-func (c *Client) RevertRevisionByPath(path string, revisionID uint64) (*Metadata, error) {
+func (c *Client) RevertRevisionByPath(ctx context.Context, path string, revisionID uint64) (*Metadata, error) {
 	params := url.Values{
 		"path":       {path},
 		"revisionid": {strconv.FormatUint(revisionID, 10)},
 	}
 
 	var resp revertResponse
-	if err := c.do("revertrevision", params, &resp); err != nil {
+	if err := c.do(ctx, "revertrevision", params, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {

@@ -1,13 +1,16 @@
 package pcloud
 
-import "net/url"
+import (
+	"context"
+	"net/url"
+)
 
 type loginResponse struct {
 	Error
 	Auth string `json:"auth"`
 }
 
-func (c *Client) Login(username, password string) error {
+func (c *Client) Login(ctx context.Context, username, password string) error {
 	params := url.Values{
 		"getauth":  {"1"},
 		"username": {username},
@@ -15,7 +18,7 @@ func (c *Client) Login(username, password string) error {
 	}
 
 	var resp loginResponse
-	if err := c.do("userinfo", params, &resp); err != nil {
+	if err := c.do(ctx, "userinfo", params, &resp); err != nil {
 		return err
 	}
 	if err := resp.Err(); err != nil {
@@ -26,9 +29,9 @@ func (c *Client) Login(username, password string) error {
 	return nil
 }
 
-func (c *Client) Logout() error {
+func (c *Client) Logout(ctx context.Context) error {
 	var resp Error
-	if err := c.do("logout", url.Values{}, &resp); err != nil {
+	if err := c.do(ctx, "logout", url.Values{}, &resp); err != nil {
 		return err
 	}
 	if err := resp.Err(); err != nil {
@@ -39,9 +42,9 @@ func (c *Client) Logout() error {
 	return nil
 }
 
-func (c *Client) UserInfo() (*UserInfo, error) {
+func (c *Client) UserInfo(ctx context.Context) (*UserInfo, error) {
 	var resp UserInfo
-	if err := c.do("userinfo", url.Values{}, &resp); err != nil {
+	if err := c.do(ctx, "userinfo", url.Values{}, &resp); err != nil {
 		return nil, err
 	}
 	if err := resp.Err(); err != nil {

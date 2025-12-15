@@ -2,6 +2,7 @@ package pcloud_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -11,14 +12,15 @@ import (
 )
 
 func Example() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
 
-	if err := c.Login("user@example.com", "password"); err != nil {
+	if err := c.Login(ctx, "user@example.com", "password"); err != nil {
 		log.Fatal(err)
 	}
-	defer c.Logout()
+	defer c.Logout(ctx)
 
-	folder, err := c.ListFolder(0, nil)
+	folder, err := c.ListFolder(ctx, 0, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,9 +31,10 @@ func Example() {
 }
 
 func ExampleClient_Login() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
 
-	if err := c.Login("user@example.com", "password"); err != nil {
+	if err := c.Login(ctx, "user@example.com", "password"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -39,11 +42,12 @@ func ExampleClient_Login() {
 }
 
 func ExampleClient_UserInfo() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	info, err := c.UserInfo()
+	info, err := c.UserInfo(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,11 +58,12 @@ func ExampleClient_UserInfo() {
 }
 
 func ExampleClient_ListFolder() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	folder, err := c.ListFolder(0, nil)
+	folder, err := c.ListFolder(ctx, 0, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,11 +78,12 @@ func ExampleClient_ListFolder() {
 }
 
 func ExampleClient_ListFolder_recursive() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	folder, err := c.ListFolder(0, &pcloud.ListFolderOpts{
+	folder, err := c.ListFolder(ctx, 0, &pcloud.ListFolderOpts{
 		Recursive: true,
 	})
 	if err != nil {
@@ -97,11 +103,12 @@ func ExampleClient_ListFolder_recursive() {
 }
 
 func ExampleClient_Walk() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	for item, err := range c.Walk(0) {
+	for item, err := range c.Walk(ctx, 0) {
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -114,12 +121,13 @@ func ExampleClient_Walk() {
 }
 
 func ExampleClient_Walk_findLargeFiles() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
 	const maxSize = 100 * 1024 * 1024 // 100MB
-	for item, err := range c.Walk(0) {
+	for item, err := range c.Walk(ctx, 0) {
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -130,11 +138,12 @@ func ExampleClient_Walk_findLargeFiles() {
 }
 
 func ExampleClient_CreateFolder() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	folder, err := c.CreateFolder(0, "my-new-folder")
+	folder, err := c.CreateFolder(ctx, 0, "my-new-folder")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -143,12 +152,13 @@ func ExampleClient_CreateFolder() {
 }
 
 func ExampleClient_Upload() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
 	content := bytes.NewReader([]byte("hello world"))
-	meta, err := c.Upload(0, "hello.txt", content, nil)
+	meta, err := c.Upload(ctx, 0, "hello.txt", content, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -157,9 +167,10 @@ func ExampleClient_Upload() {
 }
 
 func ExampleClient_Upload_fromFile() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
 	f, err := os.Open("/path/to/local/file.txt")
 	if err != nil {
@@ -167,7 +178,7 @@ func ExampleClient_Upload_fromFile() {
 	}
 	defer f.Close()
 
-	meta, err := c.Upload(0, "file.txt", f, &pcloud.UploadOpts{
+	meta, err := c.Upload(ctx, 0, "file.txt", f, &pcloud.UploadOpts{
 		RenameIfExists: true,
 	})
 	if err != nil {
@@ -178,11 +189,12 @@ func ExampleClient_Upload_fromFile() {
 }
 
 func ExampleClient_Download() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	body, err := c.Download(12345)
+	body, err := c.Download(ctx, 12345)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -197,11 +209,12 @@ func ExampleClient_Download() {
 }
 
 func ExampleClient_GetFileLink() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	link, err := c.GetFileLink(12345)
+	link, err := c.GetFileLink(ctx, 12345)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -211,11 +224,12 @@ func ExampleClient_GetFileLink() {
 }
 
 func ExampleClient_ListRevisions() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	revisions, err := c.ListRevisions(12345)
+	revisions, err := c.ListRevisions(ctx, 12345)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -227,11 +241,12 @@ func ExampleClient_ListRevisions() {
 }
 
 func ExampleClient_RevertRevision() {
+	ctx := context.Background()
 	c := pcloud.NewClient(pcloud.BaseURLUS)
-	c.Login("user@example.com", "password")
-	defer c.Logout()
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
 
-	revisions, err := c.ListRevisions(12345)
+	revisions, err := c.ListRevisions(ctx, 12345)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -241,7 +256,7 @@ func ExampleClient_RevertRevision() {
 	}
 
 	oldRev := revisions[len(revisions)-1]
-	meta, err := c.RevertRevision(12345, oldRev.RevisionID)
+	meta, err := c.RevertRevision(ctx, 12345, oldRev.RevisionID)
 	if err != nil {
 		log.Fatal(err)
 	}

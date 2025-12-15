@@ -35,9 +35,6 @@ func (c *Client) ExchangeCode(ctx context.Context, cfg *oauth2.Config, code stri
 	if err := c.do(ctx, "oauth2_token", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 
 	return &oauth2.Token{
 		AccessToken: resp.AccessToken,

@@ -21,9 +21,6 @@ func (c *Client) Login(ctx context.Context, username, password string) error {
 	if err := c.do(ctx, "userinfo", params, &resp); err != nil {
 		return err
 	}
-	if err := resp.Err(); err != nil {
-		return err
-	}
 
 	c.auth = resp.Auth
 	return nil
@@ -34,9 +31,6 @@ func (c *Client) Logout(ctx context.Context) error {
 	if err := c.do(ctx, "logout", url.Values{}, &resp); err != nil {
 		return err
 	}
-	if err := resp.Err(); err != nil {
-		return err
-	}
 
 	c.auth = ""
 	return nil
@@ -45,9 +39,6 @@ func (c *Client) Logout(ctx context.Context) error {
 func (c *Client) UserInfo(ctx context.Context) (*UserInfo, error) {
 	var resp UserInfo
 	if err := c.do(ctx, "userinfo", url.Values{}, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp, nil

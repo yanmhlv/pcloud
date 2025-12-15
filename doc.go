@@ -4,12 +4,14 @@
 //
 // Create a client and authenticate with username/password:
 //
+//	ctx := context.Background()
 //	c := pcloud.NewClient(pcloud.BaseURLUS)  // or BaseURLEU for EU
-//	err := c.Login("user@example.com", "password")
-//	defer c.Logout()
+//	err := c.Login(ctx, "user@example.com", "password")
+//	defer c.Logout(ctx)
 //
 // Alternatively, use an OAuth2 token:
 //
+//	ctx := context.Background()
 //	c := pcloud.NewClient(pcloud.BaseURLUS)
 //	c.SetTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: "token"}))
 //
@@ -17,39 +19,44 @@
 //
 // List, create, rename, copy, and delete folders:
 //
-//	folder, _ := c.ListFolder(0, nil)  // 0 is root folder
-//	c.CreateFolder(0, "new-folder")
-//	c.RenameFolder(folderID, "new-name")
-//	c.DeleteFolderRecursive(folderID)
+//	ctx := context.Background()
+//	folder, _ := c.ListFolder(ctx, 0, nil)  // 0 is root folder
+//	c.CreateFolder(ctx, 0, "new-folder")
+//	c.RenameFolder(ctx, folderID, "new-name")
+//	c.DeleteFolderRecursive(ctx, folderID)
 //
 // # Files
 //
 // Upload, download, and manage files:
 //
-//	meta, _ := c.Upload(folderID, "file.txt", reader, nil)
-//	body, _ := c.Download(fileID)
-//	c.RenameFile(fileID, "new-name.txt")
-//	c.DeleteFile(fileID)
+//	ctx := context.Background()
+//	meta, _ := c.Upload(ctx, folderID, "file.txt", reader, nil)
+//	body, _ := c.Download(ctx, fileID, nil)
+//	c.RenameFile(ctx, fileID, "new-name.txt")
+//	c.DeleteFile(ctx, fileID)
 //
 // # Streaming
 //
 // Get direct download links for files:
 //
-//	link, _ := c.GetFileLink(fileID)
+//	ctx := context.Background()
+//	link, _ := c.GetFileLink(ctx, fileID)
 //	url := link.URL()
 //
 // # Revisions
 //
 // List and revert file revisions:
 //
-//	revisions, _ := c.ListRevisions(fileID)
-//	c.RevertRevision(fileID, revisionID)
+//	ctx := context.Background()
+//	revisions, _ := c.ListRevisions(ctx, fileID)
+//	c.RevertRevision(ctx, fileID, revisionID)
 //
 // # Walking
 //
 // Recursively iterate over all files and folders using iter.Seq2:
 //
-//	for item, err := range c.Walk(0) {
+//	ctx := context.Background()
+//	for item, err := range c.Walk(ctx, 0) {
 //	    if err != nil {
 //	        log.Fatal(err)
 //	    }

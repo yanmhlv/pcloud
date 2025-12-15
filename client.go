@@ -48,18 +48,19 @@ func (c *Client) SetLogger(logger *slog.Logger) {
 	c.logger = logger
 }
 
-func (c *Client) SetRateLimit(rpm float64) {
+func (c *Client) SetRateLimit(rpm float64) error {
 	if rpm < DefaultRPM {
-		rpm = DefaultRPM
+		return fmt.Errorf("rate limit %.1f RPM is below minimum %.1f RPM", rpm, DefaultRPM)
 	}
 	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), 1)
+	return nil
 }
 
 func (c *Client) SetTokenSource(ts oauth2.TokenSource) {
 	c.tokenSource = ts
 }
 
-func (c *Client) do(ctx context.Context, method string, params url.Values, result any) error {
+func (c *Client) do(ctx context.Context, method string, params url.Values, result apiError) error {
 	if err := c.setAuth(params); err != nil {
 		return err
 	}
@@ -86,10 +87,10 @@ func (c *Client) do(ctx context.Context, method string, params url.Values, resul
 		c.logger.Error("decode failed", "method", method, "error", err)
 		return err
 	}
-	return nil
+	return result.Err()
 }
 
-func (c *Client) doPost(ctx context.Context, method string, params url.Values, body io.Reader, contentType string, result any) error {
+func (c *Client) doPost(ctx context.Context, method string, params url.Values, body io.Reader, contentType string, result apiError) error {
 	if err := c.setAuth(params); err != nil {
 		return err
 	}
@@ -117,7 +118,7 @@ func (c *Client) doPost(ctx context.Context, method string, params url.Values, b
 		c.logger.Error("decode failed", "method", method, "error", err)
 		return err
 	}
-	return nil
+	return result.Err()
 }
 
 func (c *Client) setAuth(params url.Values) error {

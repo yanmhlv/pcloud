@@ -25,9 +25,6 @@ func (c *Client) ListRevisions(ctx context.Context, fileID uint64) ([]Revision, 
 	if err := c.do(ctx, "listrevisions", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return resp.Revisions, nil
 }
 
@@ -38,9 +35,6 @@ func (c *Client) ListRevisionsByPath(ctx context.Context, path string) ([]Revisi
 
 	var resp revisionsResponse
 	if err := c.do(ctx, "listrevisions", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return resp.Revisions, nil
@@ -56,9 +50,6 @@ func (c *Client) RevertRevision(ctx context.Context, fileID, revisionID uint64) 
 	if err := c.do(ctx, "revertrevision", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp.Metadata, nil
 }
 
@@ -70,9 +61,6 @@ func (c *Client) RevertRevisionByPath(ctx context.Context, path string, revision
 
 	var resp revertResponse
 	if err := c.do(ctx, "revertrevision", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil

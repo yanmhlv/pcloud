@@ -9,7 +9,7 @@ import (
 type FileLinkOpts struct {
 	ForceDownload bool
 	ContentType   string
-	MaxSpeed      int
+	MaxSpeed      uint64
 }
 
 func (c *Client) GetFileLink(ctx context.Context, fileID uint64) (*FileLink, error) {
@@ -30,9 +30,6 @@ func (c *Client) GetFileLinkWithOpts(ctx context.Context, fileID uint64, opts *F
 	if err := c.do(ctx, "getfilelink", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp, nil
 }
 
@@ -46,9 +43,6 @@ func (c *Client) GetFileLinkByPathWithOpts(ctx context.Context, path string, opt
 	if err := c.do(ctx, "getfilelink", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp, nil
 }
 
@@ -59,9 +53,6 @@ func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint strin
 
 	var resp FileLink
 	if err := c.do(ctx, endpoint, params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -90,6 +81,6 @@ func applyLinkOpts(params url.Values, opts *FileLinkOpts) {
 		params.Set("contenttype", opts.ContentType)
 	}
 	if opts.MaxSpeed > 0 {
-		params.Set("maxspeed", strconv.Itoa(opts.MaxSpeed))
+		params.Set("maxspeed", strconv.FormatUint(opts.MaxSpeed, 10))
 	}
 }

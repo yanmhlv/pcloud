@@ -2,8 +2,13 @@ package pcloud
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
+
+type apiError interface {
+	Err() error
+}
 
 type Time struct {
 	time.Time
@@ -38,7 +43,7 @@ func (h *Hash) UnmarshalJSON(data []byte) error {
 		*h = ""
 		return nil
 	}
-	return nil
+	return fmt.Errorf("hash: cannot unmarshal %s", string(data))
 }
 
 type Error struct {

@@ -21,7 +21,7 @@ type PublicLink struct {
 }
 
 type PublicLinkOpts struct {
-	MaxDownloads int
+	MaxDownloads uint64
 	MaxTraffic   uint64
 	ExpireTime   int64
 	ShortLink    bool
@@ -37,7 +37,7 @@ func applyPublicLinkOpts(params url.Values, opts *PublicLinkOpts) {
 		return
 	}
 	if opts.MaxDownloads > 0 {
-		params.Set("maxdownloads", strconv.Itoa(opts.MaxDownloads))
+		params.Set("maxdownloads", strconv.FormatUint(opts.MaxDownloads, 10))
 	}
 	if opts.MaxTraffic > 0 {
 		params.Set("maxtraffic", strconv.FormatUint(opts.MaxTraffic, 10))
@@ -60,9 +60,6 @@ func (c *Client) CreateFilePublicLink(ctx context.Context, fileID uint64, opts *
 	if err := c.do(ctx, "getfilepublink", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp, nil
 }
 
@@ -74,9 +71,6 @@ func (c *Client) CreateFilePublicLinkByPath(ctx context.Context, path string, op
 
 	var resp PublicLink
 	if err := c.do(ctx, "getfilepublink", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp, nil
@@ -92,9 +86,6 @@ func (c *Client) CreateFolderPublicLink(ctx context.Context, folderID uint64, op
 	if err := c.do(ctx, "getfolderpublink", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp, nil
 }
 
@@ -108,18 +99,12 @@ func (c *Client) CreateFolderPublicLinkByPath(ctx context.Context, path string, 
 	if err := c.do(ctx, "getfolderpublink", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp, nil
 }
 
 func (c *Client) ListPublicLinks(ctx context.Context) ([]PublicLink, error) {
 	var resp listPublicLinksResponse
 	if err := c.do(ctx, "listpublinks", url.Values{}, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return resp.PubLinks, nil
@@ -131,10 +116,7 @@ func (c *Client) DeletePublicLink(ctx context.Context, linkID uint64) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletepublink", params, &resp); err != nil {
-		return err
-	}
-	return resp.Err()
+	return c.do(ctx, "deletepublink", params, &resp)
 }
 
 func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
@@ -147,9 +129,6 @@ func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *Publ
 	if err := c.do(ctx, "changepublink", params, &resp); err != nil {
 		return nil, err
 	}
-	if err := resp.Err(); err != nil {
-		return nil, err
-	}
 	return &resp, nil
 }
 
@@ -160,9 +139,6 @@ func (c *Client) GetPublicLinkInfo(ctx context.Context, code string) (*PublicLin
 
 	var resp PublicLink
 	if err := c.do(ctx, "showpublink", params, &resp); err != nil {
-		return nil, err
-	}
-	if err := resp.Err(); err != nil {
 		return nil, err
 	}
 	return &resp, nil

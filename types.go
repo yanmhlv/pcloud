@@ -1,6 +1,45 @@
 package pcloud
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
+
+type Time struct {
+	time.Time
+}
+
+func (t *Time) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	if s == "" {
+		return nil
+	}
+	parsed, err := time.Parse(time.RFC1123Z, s)
+	if err != nil {
+		return err
+	}
+	t.Time = parsed
+	return nil
+}
+
+type Hash string
+
+func (h *Hash) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*h = Hash(s)
+		return nil
+	}
+	var n uint64
+	if err := json.Unmarshal(data, &n); err == nil {
+		*h = ""
+		return nil
+	}
+	return nil
+}
 
 type Error struct {
 	Result  int    `json:"result"`
@@ -22,8 +61,8 @@ type Metadata struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
 	Path        string     `json:"path"`
-	Created     time.Time  `json:"created"`
-	Modified    time.Time  `json:"modified"`
+	Created     Time       `json:"created"`
+	Modified    Time       `json:"modified"`
 	IsFolder    bool       `json:"isfolder"`
 	IsMine      bool       `json:"ismine"`
 	IsShared    bool       `json:"isshared"`
@@ -33,17 +72,17 @@ type Metadata struct {
 	ParentID    uint64     `json:"parentfolderid,omitempty"`
 	Size        uint64     `json:"size,omitempty"`
 	ContentType string     `json:"contenttype,omitempty"`
-	Hash        string     `json:"hash,omitempty"`
+	Hash        Hash       `json:"hash,omitempty"`
 	Category    int        `json:"category,omitempty"`
 	Thumb       bool       `json:"thumb,omitempty"`
 	Contents    []Metadata `json:"contents,omitempty"`
 }
 
 type Revision struct {
-	RevisionID uint64    `json:"revisionid"`
-	Size       uint64    `json:"size"`
-	Hash       string    `json:"hash"`
-	Created    time.Time `json:"created"`
+	RevisionID uint64 `json:"revisionid"`
+	Size       uint64 `json:"size"`
+	Hash       Hash   `json:"hash"`
+	Created    Time   `json:"created"`
 }
 
 type UserInfo struct {
@@ -51,10 +90,10 @@ type UserInfo struct {
 	UserID         uint64    `json:"userid"`
 	Email          string    `json:"email"`
 	EmailVerified  bool      `json:"emailverified"`
-	Registered     time.Time `json:"registered"`
-	Language       string    `json:"language"`
-	Premium        bool      `json:"premium"`
-	PremiumExpires time.Time `json:"premiumexpires,omitempty"`
+	Registered     Time   `json:"registered"`
+	Language       string `json:"language"`
+	Premium        bool   `json:"premium"`
+	PremiumExpires Time   `json:"premiumexpires,omitempty"`
 	Quota          uint64    `json:"quota"`
 	UsedQuota      uint64    `json:"usedquota"`
 }

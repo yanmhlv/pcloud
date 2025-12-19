@@ -86,19 +86,8 @@ func (c *Client) do(ctx context.Context, method string, params url.Values, resul
 	defer resp.Body.Close()
 
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		if resp.StatusCode != http.StatusOK {
-			c.logger.Error("request failed", "method", method, "status", resp.Status)
-			return fmt.Errorf("request failed: %s", resp.Status)
-		}
 		c.logger.Error("decode failed", "method", method, "error", err)
 		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		if err := result.Err(); err != nil {
-			return err
-		}
-		c.logger.Error("request failed", "method", method, "status", resp.Status)
-		return fmt.Errorf("request failed: %s", resp.Status)
 	}
 	return result.Err()
 }
@@ -128,19 +117,8 @@ func (c *Client) doPost(ctx context.Context, method string, params url.Values, b
 	defer resp.Body.Close()
 
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		if resp.StatusCode != http.StatusOK {
-			c.logger.Error("request failed", "method", method, "status", resp.Status)
-			return fmt.Errorf("request failed: %s", resp.Status)
-		}
 		c.logger.Error("decode failed", "method", method, "error", err)
 		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		if err := result.Err(); err != nil {
-			return err
-		}
-		c.logger.Error("request failed", "method", method, "status", resp.Status)
-		return fmt.Errorf("request failed: %s", resp.Status)
 	}
 	return result.Err()
 }

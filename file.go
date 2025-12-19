@@ -149,7 +149,7 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 
 	var resp uploadResponse
 	if err := c.doPost(ctx, "uploadfile", params, pr, writer.FormDataContentType(), &resp); err != nil {
-		<-errCh
+		_ = pr.CloseWithError(err)
 		return nil, err
 	}
 	if err := <-errCh; err != nil {

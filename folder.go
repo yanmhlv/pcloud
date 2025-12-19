@@ -171,10 +171,18 @@ func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) err
 	return c.do(ctx, "deletefolderrecursive", params, &resp)
 }
 
-func walkContents(contents []Metadata, yield func(Metadata, error) bool) {
+func walkContents(ctx context.Context, contents []Metadata, yield func(Metadata, error) bool) {
 	var walk func(items []Metadata) bool
 	walk = func(items []Metadata) bool {
+		if err := ctx.Err(); err != nil {
+			yield(Metadata{}, err)
+			return false
+		}
 		for _, item := range items {
+			if err := ctx.Err(); err != nil {
+				yield(Metadata{}, err)
+				return false
+			}
 			if !yield(item, nil) {
 				return false
 			}
@@ -196,7 +204,7 @@ func (c *Client) Walk(ctx context.Context, folderID uint64) iter.Seq2[Metadata, 
 			yield(Metadata{}, err)
 			return
 		}
-		walkContents(folder.Contents, yield)
+		walkContents(ctx, folder.Contents, yield)
 	}
 }
 
@@ -207,6 +215,6 @@ func (c *Client) WalkByPath(ctx context.Context, path string) iter.Seq2[Metadata
 			yield(Metadata{}, err)
 			return
 		}
-		walkContents(folder.Contents, yield)
+		walkContents(ctx, folder.Contents, yield)
 	}
 }

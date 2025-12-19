@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -124,21 +123,35 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 		}
 	}
 
-	var body bytes.Buffer
-	writer := multipart.NewWriter(&body)
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := io.Copy(part, readContent); err != nil {
-		return nil, err
-	}
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	errCh := make(chan error, 1)
+	go func() {
+		defer close(errCh)
+		part, err := writer.CreateFormFile("file", filename)
+		if err != nil {
+			_ = pw.CloseWithError(err)
+			errCh <- err
+			return
+		}
+		if _, err := io.Copy(part, readContent); err != nil {
+			_ = pw.CloseWithError(err)
+			errCh <- err
+			return
+		}
+		if err := writer.Close(); err != nil {
+			_ = pw.CloseWithError(err)
+			errCh <- err
+			return
+		}
+		_ = pw.Close()
+	}()
 
 	var resp uploadResponse
-	if err := c.doPost(ctx, "uploadfile", params, &body, writer.FormDataContentType(), &resp); err != nil {
+	if err := c.doPost(ctx, "uploadfile", params, pr, writer.FormDataContentType(), &resp); err != nil {
+		return nil, err
+	}
+	if err := <-errCh; err != nil {
 		return nil, err
 	}
 	if len(resp.Metadata) == 0 {

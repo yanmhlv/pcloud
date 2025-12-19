@@ -59,7 +59,10 @@ func (e *Error) Err() error {
 }
 
 func (e *Error) Error() string {
-	return e.Message
+	if e.Message == "" {
+		return fmt.Sprintf("pcloud error %d", e.Result)
+	}
+	return fmt.Sprintf("pcloud error %d: %s", e.Result, e.Message)
 }
 
 type Metadata struct {

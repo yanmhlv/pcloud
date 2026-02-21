@@ -20,6 +20,13 @@ type Time struct {
 	time.Time
 }
 
+func (t Time) MarshalJSON() ([]byte, error) {
+	if t.IsZero() {
+		return []byte(`""`), nil
+	}
+	return json.Marshal(t.Time.Format(time.RFC1123Z))
+}
+
 func (t *Time) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {

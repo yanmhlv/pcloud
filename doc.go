@@ -62,4 +62,38 @@
 //	    }
 //	    fmt.Println(item.Path)
 //	}
+//
+// # Trash
+//
+// List, restore, and empty the trash:
+//
+//	ctx := context.Background()
+//	items, _ := c.ListTrash(ctx)
+//	c.RestoreFromTrash(ctx, fileID)
+//	c.EmptyTrash(ctx)
+//
+// # Search
+//
+// Search for files by name:
+//
+//	ctx := context.Background()
+//	results, _ := c.Search(ctx, "report", nil)
+//	results, _ = c.Search(ctx, "img", &pcloud.SearchOpts{FolderID: 10, Recursive: true})
+//
+// # Thumbnails
+//
+// Generate image thumbnails:
+//
+//	ctx := context.Background()
+//	link, _ := c.GetThumbnail(ctx, fileID, 200, 200, nil)
+//	link, _ = c.GetThumbnailByPath(ctx, "/photo.jpg", 128, 128, &pcloud.ThumbOpts{Crop: true})
+//
+// # Favorites
+//
+// Manage starred files:
+//
+//	ctx := context.Background()
+//	c.AddFavorite(ctx, fileID)
+//	favorites, _ := c.ListFavorites(ctx)
+//	c.RemoveFavorite(ctx, fileID)
 package pcloud

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -111,7 +112,7 @@ func TestProgressReaderCumulative(t *testing.T) {
 	if _, err := pr.Read(buf); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := pr.Read(buf); err != nil && err != io.EOF {
+	if _, err := pr.Read(buf); err != nil && !errors.Is(err, io.EOF) {
 		t.Fatal(err)
 	}
 

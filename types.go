@@ -35,7 +35,7 @@ func (t Time) MarshalJSON() ([]byte, error) {
 	if t.IsZero() {
 		return []byte(`""`), nil
 	}
-	return json.Marshal(t.Time.Format(time.RFC1123Z))
+	return json.Marshal(t.Format(time.RFC1123Z))
 }
 
 // UnmarshalJSON decodes a pCloud RFC1123Z date string into Time.

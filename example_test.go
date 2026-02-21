@@ -263,3 +263,78 @@ func ExampleClient_RevertRevision() {
 
 	fmt.Printf("Reverted to revision, new size: %d\n", meta.Size)
 }
+
+func ExampleClient_ListTrash() {
+	ctx := context.Background()
+	c := pcloud.NewClient(pcloud.BaseURLUS)
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
+
+	items, err := c.ListTrash(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, item := range items {
+		fmt.Printf("Trashed: %s\n", item.Name)
+	}
+}
+
+func ExampleClient_EmptyTrash() {
+	ctx := context.Background()
+	c := pcloud.NewClient(pcloud.BaseURLUS)
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
+
+	if err := c.EmptyTrash(ctx); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("trash emptied")
+}
+
+func ExampleClient_Search() {
+	ctx := context.Background()
+	c := pcloud.NewClient(pcloud.BaseURLUS)
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
+
+	results, err := c.Search(ctx, "report", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, item := range results {
+		fmt.Printf("Found: %s (%d bytes)\n", item.Name, item.Size)
+	}
+}
+
+func ExampleClient_GetThumbnail() {
+	ctx := context.Background()
+	c := pcloud.NewClient(pcloud.BaseURLUS)
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
+
+	link, err := c.GetThumbnail(ctx, 12345, 200, 200, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Thumbnail URL: %s\n", link.URL())
+}
+
+func ExampleClient_ListFavorites() {
+	ctx := context.Background()
+	c := pcloud.NewClient(pcloud.BaseURLUS)
+	c.Login(ctx, "user@example.com", "password")
+	defer c.Logout(ctx)
+
+	favorites, err := c.ListFavorites(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, item := range favorites {
+		fmt.Printf("Favorite: %s\n", item.Name)
+	}
+}

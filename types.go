@@ -3,6 +3,7 @@ package pcloud
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -45,7 +46,7 @@ func (h *Hash) UnmarshalJSON(data []byte) error {
 	}
 	var n uint64
 	if err := json.Unmarshal(data, &n); err == nil {
-		*h = ""
+		*h = Hash(strconv.FormatUint(n, 10))
 		return nil
 	}
 	return fmt.Errorf("hash: cannot unmarshal %s", string(data))

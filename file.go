@@ -17,8 +17,11 @@ type uploadResponse struct {
 	Metadata []Metadata `json:"metadata"`
 }
 
+// ProgressFunc is called during upload or download with cumulative bytes transferred and total size.
+// Total may be -1 if the size is unknown.
 type ProgressFunc func(transferred, total int64)
 
+// UploadOpts controls optional parameters for file uploads.
 type UploadOpts struct {
 	NoPartial      bool
 	RenameIfExists bool
@@ -27,6 +30,7 @@ type UploadOpts struct {
 	OnProgress     ProgressFunc
 }
 
+// DownloadOpts controls optional parameters for file downloads.
 type DownloadOpts struct {
 	OnProgress ProgressFunc
 }
@@ -151,6 +155,7 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 	return &resp.Metadata[0], nil
 }
 
+// Upload uploads content to folderID as filename.
 func (c *Client) Upload(ctx context.Context, folderID uint64, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
 	params := url.Values{
 		"folderid": {strconv.FormatUint(folderID, 10)},
@@ -159,6 +164,7 @@ func (c *Client) Upload(ctx context.Context, folderID uint64, filename string, c
 	return c.upload(ctx, params, filename, content, opts)
 }
 
+// UploadByPath uploads content to the folder at path as filename.
 func (c *Client) UploadByPath(ctx context.Context, path, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
 	params := url.Values{
 		"path":     {path},
@@ -167,6 +173,8 @@ func (c *Client) UploadByPath(ctx context.Context, path, filename string, conten
 	return c.upload(ctx, params, filename, content, opts)
 }
 
+// Download downloads a file by ID and returns the response body.
+// The caller must close the returned ReadCloser.
 func (c *Client) Download(ctx context.Context, fileID uint64, opts *DownloadOpts) (io.ReadCloser, error) {
 	link, err := c.GetFileLink(ctx, fileID)
 	if err != nil {
@@ -175,6 +183,8 @@ func (c *Client) Download(ctx context.Context, fileID uint64, opts *DownloadOpts
 	return c.downloadFromLink(ctx, link, opts)
 }
 
+// DownloadByPath downloads a file by path and returns the response body.
+// The caller must close the returned ReadCloser.
 func (c *Client) DownloadByPath(ctx context.Context, path string, opts *DownloadOpts) (io.ReadCloser, error) {
 	link, err := c.GetFileLinkByPath(ctx, path)
 	if err != nil {
@@ -216,10 +226,12 @@ func (c *Client) stat(ctx context.Context, params url.Values) (*Metadata, error)
 	return &resp.Metadata, nil
 }
 
+// Stat returns metadata for a file identified by numeric ID.
 func (c *Client) Stat(ctx context.Context, fileID uint64) (*Metadata, error) {
 	return c.stat(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
 }
 
+// StatByPath returns metadata for a file identified by path.
 func (c *Client) StatByPath(ctx context.Context, path string) (*Metadata, error) {
 	return c.stat(ctx, url.Values{"path": {path}})
 }
@@ -229,14 +241,17 @@ func (c *Client) deleteFile(ctx context.Context, params url.Values) error {
 	return c.do(ctx, "deletefile", params, &resp)
 }
 
+// DeleteFile deletes a file by numeric ID.
 func (c *Client) DeleteFile(ctx context.Context, fileID uint64) error {
 	return c.deleteFile(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
 }
 
+// DeleteFileByPath deletes a file by path.
 func (c *Client) DeleteFileByPath(ctx context.Context, path string) error {
 	return c.deleteFile(ctx, url.Values{"path": {path}})
 }
 
+// RenameFile renames a file in-place.
 func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) (*Metadata, error) {
 	params := url.Values{
 		"fileid": {strconv.FormatUint(fileID, 10)},
@@ -250,6 +265,7 @@ func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) 
 	return &resp.Metadata, nil
 }
 
+// MoveFile moves a file to a different folder and optionally renames it.
 func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64, name string) (*Metadata, error) {
 	params := url.Values{
 		"fileid":     {strconv.FormatUint(fileID, 10)},
@@ -264,6 +280,7 @@ func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64, name s
 	return &resp.Metadata, nil
 }
 
+// CopyFile copies a file into toFolderID.
 func (c *Client) CopyFile(ctx context.Context, fileID, toFolderID uint64) (*Metadata, error) {
 	params := url.Values{
 		"fileid":     {strconv.FormatUint(fileID, 10)},

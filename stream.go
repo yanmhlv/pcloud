@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// FileLinkOpts controls optional parameters for file link requests.
 type FileLinkOpts struct {
 	ForceDownload bool
 	ContentType   string
@@ -36,18 +37,22 @@ func (c *Client) getFileLink(ctx context.Context, params url.Values, opts *FileL
 	return &resp, nil
 }
 
+// GetFileLink returns a temporary direct-download URL for a file by numeric ID.
 func (c *Client) GetFileLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	return c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, nil)
 }
 
+// GetFileLinkByPath returns a temporary direct-download URL for a file by path.
 func (c *Client) GetFileLinkByPath(ctx context.Context, path string) (*FileLink, error) {
 	return c.getFileLink(ctx, url.Values{"path": {path}}, nil)
 }
 
+// GetFileLinkWithOpts returns a direct-download URL for a file by numeric ID with options.
 func (c *Client) GetFileLinkWithOpts(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
 	return c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
 }
 
+// GetFileLinkByPathWithOpts returns a direct-download URL for a file by path with options.
 func (c *Client) GetFileLinkByPathWithOpts(ctx context.Context, path string, opts *FileLinkOpts) (*FileLink, error) {
 	return c.getFileLink(ctx, url.Values{"path": {path}}, opts)
 }
@@ -64,14 +69,17 @@ func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint strin
 	return &resp, nil
 }
 
+// GetVideoLink returns a streaming URL for a video file.
 func (c *Client) GetVideoLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	return c.getMediaLink(ctx, fileID, "getvideolink")
 }
 
+// GetAudioLink returns a streaming URL for an audio file.
 func (c *Client) GetAudioLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	return c.getMediaLink(ctx, fileID, "getaudiolink")
 }
 
+// GetHLSLink returns an HLS streaming URL for a video file.
 func (c *Client) GetHLSLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	return c.getMediaLink(ctx, fileID, "gethlslink")
 }

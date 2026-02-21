@@ -15,12 +15,18 @@ import (
 )
 
 const (
-	BaseURLUS      = "https://api.pcloud.com"
-	BaseURLEU      = "https://eapi.pcloud.com"
-	DefaultRPM     = 100.0
+	// BaseURLUS is the pCloud API endpoint for US-region accounts.
+	BaseURLUS = "https://api.pcloud.com"
+	// BaseURLEU is the pCloud API endpoint for EU-region accounts.
+	BaseURLEU = "https://eapi.pcloud.com"
+	// MinRPM is the minimum allowed rate limit in requests per minute.
+	MinRPM = 100.0
+	// DefaultTimeout is the default HTTP client timeout.
 	DefaultTimeout = 30 * time.Second
 )
 
+// Client is a pCloud API client. Use NewClient to create one.
+// All methods are safe for concurrent use.
 type Client struct {
 	baseURL     string
 	httpClient  *http.Client
@@ -30,6 +36,8 @@ type Client struct {
 	limiter     *rate.Limiter
 }
 
+// NewClient creates a new Client for the given base URL.
+// Pass BaseURLUS or BaseURLEU; an empty string defaults to BaseURLUS.
 func NewClient(baseURL string) *Client {
 	if baseURL == "" {
 		baseURL = BaseURLUS
@@ -38,26 +46,32 @@ func NewClient(baseURL string) *Client {
 		baseURL:    baseURL,
 		httpClient: &http.Client{Timeout: DefaultTimeout},
 		logger:     newNoopLogger(),
-		limiter:    rate.NewLimiter(rate.Limit(DefaultRPM/60.0), 1),
+		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), 10),
 	}
 }
 
+// SetHTTPClient replaces the default HTTP client.
 func (c *Client) SetHTTPClient(client *http.Client) {
 	c.httpClient = client
 }
 
+// SetLogger attaches a structured logger for request diagnostics.
 func (c *Client) SetLogger(logger *slog.Logger) {
 	c.logger = logger
 }
 
+// SetRateLimit configures the maximum requests per minute.
+// Returns an error if rpm is below MinRPM.
 func (c *Client) SetRateLimit(rpm float64) error {
-	if rpm < DefaultRPM {
-		return fmt.Errorf("rate limit %.1f RPM is below minimum %.1f RPM", rpm, DefaultRPM)
+	if rpm < MinRPM {
+		return fmt.Errorf("rate limit %.1f RPM is below minimum %.1f RPM", rpm, MinRPM)
 	}
-	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), 1)
+	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), 10)
 	return nil
 }
 
+// SetTokenSource configures OAuth2 token-based authentication.
+// This takes precedence over username/password auth set via Login.
 func (c *Client) SetTokenSource(ts oauth2.TokenSource) {
 	c.tokenSource = ts
 }

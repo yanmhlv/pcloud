@@ -17,14 +17,14 @@ func TestNewClientDefaultURL(t *testing.T) {
 
 func TestSetRateLimitBelowMin(t *testing.T) {
 	c := NewClient("")
-	if err := c.SetRateLimit(DefaultRPM - 1); err == nil {
-		t.Fatal("expected error for rate below DefaultRPM")
+	if err := c.SetRateLimit(MinRPM - 1); err == nil {
+		t.Fatal("expected error for rate below MinRPM")
 	}
 }
 
 func TestSetRateLimitValid(t *testing.T) {
 	c := NewClient("")
-	if err := c.SetRateLimit(DefaultRPM); err != nil {
+	if err := c.SetRateLimit(MinRPM); err != nil {
 		t.Fatal(err)
 	}
 }

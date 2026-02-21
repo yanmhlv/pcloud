@@ -10,6 +10,11 @@ type apiError interface {
 	Err() error
 }
 
+type metadataResponse struct {
+	Error
+	Metadata Metadata `json:"metadata"`
+}
+
 type Time struct {
 	time.Time
 }

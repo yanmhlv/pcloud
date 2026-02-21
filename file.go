@@ -11,11 +11,6 @@ import (
 	"strconv"
 )
 
-type fileResponse struct {
-	Error
-	Metadata Metadata `json:"metadata"`
-}
-
 type uploadResponse struct {
 	Error
 	FileIDs  []uint64   `json:"fileids"`
@@ -37,15 +32,14 @@ type DownloadOpts struct {
 }
 
 type progressReader struct {
-	reader     io.Reader
-	closer     io.Closer
+	rc         io.ReadCloser
 	total      int64
 	read       int64
 	onProgress ProgressFunc
 }
 
 func (pr *progressReader) Read(p []byte) (int, error) {
-	n, err := pr.reader.Read(p)
+	n, err := pr.rc.Read(p)
 	if n > 0 && pr.onProgress != nil {
 		pr.read += int64(n)
 		pr.onProgress(pr.read, pr.total)
@@ -54,10 +48,7 @@ func (pr *progressReader) Read(p []byte) (int, error) {
 }
 
 func (pr *progressReader) Close() error {
-	if pr.closer != nil {
-		return pr.closer.Close()
-	}
-	return nil
+	return pr.rc.Close()
 }
 
 func getContentSize(r io.Reader) (int64, error) {
@@ -116,8 +107,7 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 	readContent := content
 	if opts != nil && opts.OnProgress != nil && contentSize > 0 {
 		readContent = &progressReader{
-			reader:     content,
-			closer:     nil,
+			rc:         io.NopCloser(content),
 			total:      contentSize,
 			onProgress: opts.OnProgress,
 		}
@@ -210,8 +200,7 @@ func (c *Client) downloadFromLink(ctx context.Context, link *FileLink, opts *Dow
 
 	if opts != nil && opts.OnProgress != nil {
 		return &progressReader{
-			reader:     resp.Body,
-			closer:     resp.Body,
+			rc:         resp.Body,
 			total:      resp.ContentLength,
 			onProgress: opts.OnProgress,
 		}, nil
@@ -219,46 +208,33 @@ func (c *Client) downloadFromLink(ctx context.Context, link *FileLink, opts *Dow
 	return resp.Body, nil
 }
 
-func (c *Client) Stat(ctx context.Context, fileID uint64) (*Metadata, error) {
-	params := url.Values{
-		"fileid": {strconv.FormatUint(fileID, 10)},
-	}
-
-	var resp fileResponse
+func (c *Client) stat(ctx context.Context, params url.Values) (*Metadata, error) {
+	var resp metadataResponse
 	if err := c.do(ctx, "stat", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
+}
+
+func (c *Client) Stat(ctx context.Context, fileID uint64) (*Metadata, error) {
+	return c.stat(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
 }
 
 func (c *Client) StatByPath(ctx context.Context, path string) (*Metadata, error) {
-	params := url.Values{
-		"path": {path},
-	}
+	return c.stat(ctx, url.Values{"path": {path}})
+}
 
-	var resp fileResponse
-	if err := c.do(ctx, "stat", params, &resp); err != nil {
-		return nil, err
-	}
-	return &resp.Metadata, nil
+func (c *Client) deleteFile(ctx context.Context, params url.Values) error {
+	var resp Error
+	return c.do(ctx, "deletefile", params, &resp)
 }
 
 func (c *Client) DeleteFile(ctx context.Context, fileID uint64) error {
-	params := url.Values{
-		"fileid": {strconv.FormatUint(fileID, 10)},
-	}
-
-	var resp Error
-	return c.do(ctx, "deletefile", params, &resp)
+	return c.deleteFile(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
 }
 
 func (c *Client) DeleteFileByPath(ctx context.Context, path string) error {
-	params := url.Values{
-		"path": {path},
-	}
-
-	var resp Error
-	return c.do(ctx, "deletefile", params, &resp)
+	return c.deleteFile(ctx, url.Values{"path": {path}})
 }
 
 func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) (*Metadata, error) {
@@ -267,7 +243,7 @@ func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) 
 		"toname": {newName},
 	}
 
-	var resp fileResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "renamefile", params, &resp); err != nil {
 		return nil, err
 	}
@@ -281,7 +257,7 @@ func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64, name s
 		"toname":     {name},
 	}
 
-	var resp fileResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "renamefile", params, &resp); err != nil {
 		return nil, err
 	}
@@ -294,7 +270,7 @@ func (c *Client) CopyFile(ctx context.Context, fileID, toFolderID uint64) (*Meta
 		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
 	}
 
-	var resp fileResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "copyfile", params, &resp); err != nil {
 		return nil, err
 	}

@@ -7,11 +7,6 @@ import (
 	"strconv"
 )
 
-type folderResponse struct {
-	Error
-	Metadata Metadata `json:"metadata"`
-}
-
 type ListFolderOpts struct {
 	Recursive   bool
 	ShowDeleted bool
@@ -37,67 +32,56 @@ func applyListFolderOpts(params url.Values, opts *ListFolderOpts) {
 	}
 }
 
-func (c *Client) ListFolder(ctx context.Context, folderID uint64, opts *ListFolderOpts) (*Metadata, error) {
-	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-	}
+func (c *Client) listFolder(ctx context.Context, params url.Values, opts *ListFolderOpts) (*Metadata, error) {
 	applyListFolderOpts(params, opts)
-
-	var resp folderResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "listfolder", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
+}
+
+func (c *Client) ListFolder(ctx context.Context, folderID uint64, opts *ListFolderOpts) (*Metadata, error) {
+	return c.listFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
 }
 
 func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFolderOpts) (*Metadata, error) {
-	params := url.Values{
-		"path": {path},
-	}
-	applyListFolderOpts(params, opts)
-
-	var resp folderResponse
-	if err := c.do(ctx, "listfolder", params, &resp); err != nil {
-		return nil, err
-	}
-	return &resp.Metadata, nil
+	return c.listFolder(ctx, url.Values{"path": {path}}, opts)
 }
 
-func (c *Client) StatFolder(ctx context.Context, folderID uint64) (*Metadata, error) {
-	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-	}
-
-	var resp folderResponse
+func (c *Client) statFolder(ctx context.Context, params url.Values) (*Metadata, error) {
+	var resp metadataResponse
 	if err := c.do(ctx, "stat", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
 }
 
-func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
-	params := url.Values{
-		"folderid": {strconv.FormatUint(parentID, 10)},
-		"name":     {name},
-	}
+func (c *Client) StatFolder(ctx context.Context, folderID uint64) (*Metadata, error) {
+	return c.statFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}})
+}
 
-	var resp folderResponse
+func (c *Client) StatFolderByPath(ctx context.Context, path string) (*Metadata, error) {
+	return c.statFolder(ctx, url.Values{"path": {path}})
+}
+
+func (c *Client) createFolder(ctx context.Context, params url.Values) (*Metadata, error) {
+	var resp metadataResponse
 	if err := c.do(ctx, "createfolder", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
 }
 
-func (c *Client) CreateFolderByPath(ctx context.Context, path string) (*Metadata, error) {
-	params := url.Values{
-		"path": {path},
-	}
+func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
+	return c.createFolder(ctx, url.Values{
+		"folderid": {strconv.FormatUint(parentID, 10)},
+		"name":     {name},
+	})
+}
 
-	var resp folderResponse
-	if err := c.do(ctx, "createfolder", params, &resp); err != nil {
-		return nil, err
-	}
-	return &resp.Metadata, nil
+func (c *Client) CreateFolderByPath(ctx context.Context, path string) (*Metadata, error) {
+	return c.createFolder(ctx, url.Values{"path": {path}})
 }
 
 func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
@@ -106,7 +90,7 @@ func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, n
 		"name":     {name},
 	}
 
-	var resp folderResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "createfolderifnotexists", params, &resp); err != nil {
 		return nil, err
 	}
@@ -119,7 +103,7 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 		"toname":   {newName},
 	}
 
-	var resp folderResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
 		return nil, err
 	}
@@ -133,7 +117,7 @@ func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, na
 		"toname":     {name},
 	}
 
-	var resp folderResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
 		return nil, err
 	}
@@ -146,7 +130,7 @@ func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*
 		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
 	}
 
-	var resp folderResponse
+	var resp metadataResponse
 	if err := c.do(ctx, "copyfolder", params, &resp); err != nil {
 		return nil, err
 	}

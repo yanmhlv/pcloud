@@ -62,65 +62,45 @@ func (c *Client) SetTokenSource(ts oauth2.TokenSource) {
 	c.tokenSource = ts
 }
 
-func (c *Client) do(ctx context.Context, method string, params url.Values, result apiError) error {
+func (c *Client) request(ctx context.Context, httpMethod, apiMethod string, params url.Values, body io.Reader, contentType string, result apiError) error {
 	if err := c.setAuth(params); err != nil {
 		return err
 	}
 
-	c.logger.Debug("request", "method", method)
+	c.logger.Debug("request", "method", apiMethod)
 	if err := c.limiter.Wait(ctx); err != nil {
 		return err
 	}
 
-	reqURL := fmt.Sprintf("%s/%s?%s", c.baseURL, method, params.Encode())
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	reqURL := fmt.Sprintf("%s/%s?%s", c.baseURL, apiMethod, params.Encode())
+	req, err := http.NewRequestWithContext(ctx, httpMethod, reqURL, body)
 	if err != nil {
 		return err
+	}
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		c.logger.Error("request failed", "method", method, "error", err)
+		c.logger.Error("request failed", "method", apiMethod, "error", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		c.logger.Error("decode failed", "method", method, "error", err)
+		c.logger.Error("decode failed", "method", apiMethod, "error", err)
 		return err
 	}
 	return result.Err()
 }
 
+func (c *Client) do(ctx context.Context, method string, params url.Values, result apiError) error {
+	return c.request(ctx, http.MethodGet, method, params, nil, "", result)
+}
+
 func (c *Client) doPost(ctx context.Context, method string, params url.Values, body io.Reader, contentType string, result apiError) error {
-	if err := c.setAuth(params); err != nil {
-		return err
-	}
-
-	c.logger.Debug("request", "method", method)
-	if err := c.limiter.Wait(ctx); err != nil {
-		return err
-	}
-
-	reqURL := fmt.Sprintf("%s/%s?%s", c.baseURL, method, params.Encode())
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, reqURL, body)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", contentType)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		c.logger.Error("request failed", "method", method, "error", err)
-		return err
-	}
-	defer resp.Body.Close()
-
-	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		c.logger.Error("decode failed", "method", method, "error", err)
-		return err
-	}
-	return result.Err()
+	return c.request(ctx, http.MethodPost, method, params, body, contentType, result)
 }
 
 func (c *Client) setAuth(params url.Values) error {

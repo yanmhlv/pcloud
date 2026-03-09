@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// PublicLink represents a shareable public link to a file or folder.
 type PublicLink struct {
 	Error
 	LinkID    uint64   `json:"linkid"`
@@ -20,10 +21,11 @@ type PublicLink struct {
 	ShortCode string   `json:"shortcode,omitempty"`
 }
 
+// PublicLinkOpts controls optional parameters for creating or updating public links.
 type PublicLinkOpts struct {
 	MaxDownloads uint64
 	MaxTraffic   uint64
-	ExpireTime   int64
+	ExpireAt     int64
 	ShortLink    bool
 }
 
@@ -42,66 +44,53 @@ func applyPublicLinkOpts(params url.Values, opts *PublicLinkOpts) {
 	if opts.MaxTraffic > 0 {
 		params.Set("maxtraffic", strconv.FormatUint(opts.MaxTraffic, 10))
 	}
-	if opts.ExpireTime > 0 {
-		params.Set("expire", strconv.FormatInt(opts.ExpireTime, 10))
+	if opts.ExpireAt > 0 {
+		params.Set("expire", strconv.FormatInt(opts.ExpireAt, 10))
 	}
 	if opts.ShortLink {
 		params.Set("shortlink", "1")
 	}
 }
 
+func (c *Client) createFilePublicLink(ctx context.Context, params url.Values, opts *PublicLinkOpts) (*PublicLink, error) {
+	applyPublicLinkOpts(params, opts)
+	var resp PublicLink
+	if err := c.do(ctx, "getfilepublink", params, &resp); err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+// CreateFilePublicLink creates a public download link for a file by numeric ID.
 func (c *Client) CreateFilePublicLink(ctx context.Context, fileID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
-	params := url.Values{
-		"fileid": {strconv.FormatUint(fileID, 10)},
-	}
-	applyPublicLinkOpts(params, opts)
-
-	var resp PublicLink
-	if err := c.do(ctx, "getfilepublink", params, &resp); err != nil {
-		return nil, err
-	}
-	return &resp, nil
+	return c.createFilePublicLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
 }
 
+// CreateFilePublicLinkByPath creates a public download link for a file by path.
 func (c *Client) CreateFilePublicLinkByPath(ctx context.Context, path string, opts *PublicLinkOpts) (*PublicLink, error) {
-	params := url.Values{
-		"path": {path},
-	}
-	applyPublicLinkOpts(params, opts)
+	return c.createFilePublicLink(ctx, url.Values{"path": {path}}, opts)
+}
 
+func (c *Client) createFolderPublicLink(ctx context.Context, params url.Values, opts *PublicLinkOpts) (*PublicLink, error) {
+	applyPublicLinkOpts(params, opts)
 	var resp PublicLink
-	if err := c.do(ctx, "getfilepublink", params, &resp); err != nil {
+	if err := c.do(ctx, "getfolderpublink", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
+// CreateFolderPublicLink creates a public link for a folder by numeric ID.
 func (c *Client) CreateFolderPublicLink(ctx context.Context, folderID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
-	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-	}
-	applyPublicLinkOpts(params, opts)
-
-	var resp PublicLink
-	if err := c.do(ctx, "getfolderpublink", params, &resp); err != nil {
-		return nil, err
-	}
-	return &resp, nil
+	return c.createFolderPublicLink(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
 }
 
+// CreateFolderPublicLinkByPath creates a public link for a folder by path.
 func (c *Client) CreateFolderPublicLinkByPath(ctx context.Context, path string, opts *PublicLinkOpts) (*PublicLink, error) {
-	params := url.Values{
-		"path": {path},
-	}
-	applyPublicLinkOpts(params, opts)
-
-	var resp PublicLink
-	if err := c.do(ctx, "getfolderpublink", params, &resp); err != nil {
-		return nil, err
-	}
-	return &resp, nil
+	return c.createFolderPublicLink(ctx, url.Values{"path": {path}}, opts)
 }
 
+// ListPublicLinks returns all public links created by the authenticated user.
 func (c *Client) ListPublicLinks(ctx context.Context) ([]PublicLink, error) {
 	var resp listPublicLinksResponse
 	if err := c.do(ctx, "listpublinks", url.Values{}, &resp); err != nil {
@@ -110,6 +99,7 @@ func (c *Client) ListPublicLinks(ctx context.Context) ([]PublicLink, error) {
 	return resp.PubLinks, nil
 }
 
+// DeletePublicLink removes a public link by its ID.
 func (c *Client) DeletePublicLink(ctx context.Context, linkID uint64) error {
 	params := url.Values{
 		"linkid": {strconv.FormatUint(linkID, 10)},
@@ -119,6 +109,7 @@ func (c *Client) DeletePublicLink(ctx context.Context, linkID uint64) error {
 	return c.do(ctx, "deletepublink", params, &resp)
 }
 
+// ChangePublicLink updates settings on an existing public link.
 func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
 	params := url.Values{
 		"linkid": {strconv.FormatUint(linkID, 10)},
@@ -132,6 +123,7 @@ func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *Publ
 	return &resp, nil
 }
 
+// GetPublicLinkInfo returns details about a public link identified by its short code.
 func (c *Client) GetPublicLinkInfo(ctx context.Context, code string) (*PublicLink, error) {
 	params := url.Values{
 		"code": {code},

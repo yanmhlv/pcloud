@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -21,7 +20,7 @@ func TestListRevisions(t *testing.T) {
 		})
 	})
 
-	revs, err := c.ListRevisions(context.Background(), 20)
+	revs, err := c.ListRevisions(t.Context(), 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +40,7 @@ func TestListRevisionsByPath(t *testing.T) {
 		})
 	})
 
-	revs, err := c.ListRevisionsByPath(context.Background(), "/file.txt")
+	revs, err := c.ListRevisionsByPath(t.Context(), "/file.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +58,7 @@ func TestRevertRevision(t *testing.T) {
 		})
 	})
 
-	meta, err := c.RevertRevision(context.Background(), 20, 3)
+	meta, err := c.RevertRevision(t.Context(), 20, 3)
 	if err != nil {
 		t.Fatal(err)
 	}

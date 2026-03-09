@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -21,7 +20,7 @@ func TestListTrash(t *testing.T) {
 		})
 	})
 
-	items, err := c.ListTrash(context.Background())
+	items, err := c.ListTrash(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +41,7 @@ func TestRestoreFromTrash(t *testing.T) {
 		})
 	})
 
-	meta, err := c.RestoreFromTrash(context.Background(), 42)
+	meta, err := c.RestoreFromTrash(t.Context(), 42)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +62,7 @@ func TestRestoreFromTrashByPath(t *testing.T) {
 		})
 	})
 
-	_, err := c.RestoreFromTrashByPath(context.Background(), "/trash/old.txt")
+	_, err := c.RestoreFromTrashByPath(t.Context(), "/trash/old.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +80,7 @@ func TestEmptyTrash(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.EmptyTrash(context.Background()); err != nil {
+	if err := c.EmptyTrash(t.Context()); err != nil {
 		t.Fatal(err)
 	}
 }

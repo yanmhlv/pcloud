@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -18,7 +17,7 @@ func TestGetThumbnail(t *testing.T) {
 		})
 	})
 
-	link, err := c.GetThumbnail(context.Background(), 10, 200, 150, nil)
+	link, err := c.GetThumbnail(t.Context(), 10, 200, 150, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +42,7 @@ func TestGetThumbnailByPath(t *testing.T) {
 		})
 	})
 
-	_, err := c.GetThumbnailByPath(context.Background(), "/photo.jpg", 100, 100, nil)
+	_, err := c.GetThumbnailByPath(t.Context(), "/photo.jpg", 100, 100, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +62,7 @@ func TestGetThumbnailWithOpts(t *testing.T) {
 		})
 	})
 
-	c.GetThumbnail(context.Background(), 1, 64, 64, &ThumbOpts{Crop: true, Type: "png"})
+	c.GetThumbnail(t.Context(), 1, 64, 64, &ThumbOpts{Crop: true, Type: "png"})
 	if gotCrop != "1" {
 		t.Fatalf("want crop=1, got %q", gotCrop)
 	}
@@ -77,10 +76,10 @@ func TestGetThumbnailInvalidSize(t *testing.T) {
 		json.NewEncoder(w).Encode(FileLink{})
 	})
 
-	if _, err := c.GetThumbnail(context.Background(), 1, 0, 100, nil); err == nil {
+	if _, err := c.GetThumbnail(t.Context(), 1, 0, 100, nil); err == nil {
 		t.Fatal("expected error for width=0")
 	}
-	if _, err := c.GetThumbnail(context.Background(), 1, 100, 2049, nil); err == nil {
+	if _, err := c.GetThumbnail(t.Context(), 1, 100, 2049, nil); err == nil {
 		t.Fatal("expected error for height=2049")
 	}
 }

@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -37,7 +36,7 @@ func TestRequestAuthInjected(t *testing.T) {
 	})
 
 	var resp Error
-	if err := c.do(context.Background(), "ping", url.Values{}, &resp); err != nil {
+	if err := c.do(t.Context(), "ping", url.Values{}, &resp); err != nil {
 		t.Fatal(err)
 	}
 	if gotAuth != "test-token" {
@@ -51,7 +50,7 @@ func TestRequestAPIError(t *testing.T) {
 	})
 
 	var resp Error
-	err := c.do(context.Background(), "stat", url.Values{}, &resp)
+	err := c.do(t.Context(), "stat", url.Values{}, &resp)
 	if err == nil {
 		t.Fatal("expected error from API result=2005")
 	}

@@ -112,10 +112,10 @@ type Metadata struct {
 	ParentID    uint64     `json:"parentfolderid,omitempty"`
 	Size        uint64     `json:"size,omitempty"`
 	ContentType string     `json:"contenttype,omitempty"`
-	Hash        Hash       `json:"hash,omitempty"`
+	Hash        Hash       `json:"hash,omitzero"`
 	Category    int        `json:"category,omitempty"`
 	Thumb       bool       `json:"thumb,omitempty"`
-	Contents    []Metadata `json:"contents,omitempty"`
+	Contents    []Metadata `json:"contents,omitzero"`
 }
 
 // Revision describes a historical version of a pCloud file.
@@ -135,7 +135,7 @@ type UserInfo struct {
 	Registered     Time   `json:"registered"`
 	Language       string `json:"language"`
 	Premium        bool   `json:"premium"`
-	PremiumExpires Time   `json:"premiumexpires,omitempty"`
+	PremiumExpires Time   `json:"premiumexpires,omitzero"`
 	Quota          uint64 `json:"quota"`
 	UsedQuota      uint64 `json:"usedquota"`
 }

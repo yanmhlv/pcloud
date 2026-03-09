@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -14,7 +13,7 @@ func TestShareFolder(t *testing.T) {
 		json.NewEncoder(w).Encode(Share{ShareID: 9})
 	})
 
-	share, err := c.ShareFolder(context.Background(), 1, "bob@example.com", SharePermissions{CanRead: true}, nil)
+	share, err := c.ShareFolder(t.Context(), 1, "bob@example.com", SharePermissions{CanRead: true}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +32,7 @@ func TestShareFolderByPath(t *testing.T) {
 		json.NewEncoder(w).Encode(Share{ShareID: 11})
 	})
 
-	_, err := c.ShareFolderByPath(context.Background(), "/shared", "alice@example.com", SharePermissions{CanRead: true}, nil)
+	_, err := c.ShareFolderByPath(t.Context(), "/shared", "alice@example.com", SharePermissions{CanRead: true}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +49,7 @@ func TestListShares(t *testing.T) {
 		})
 	})
 
-	shares, requests, err := c.ListShares(context.Background())
+	shares, requests, err := c.ListShares(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}

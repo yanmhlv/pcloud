@@ -2,7 +2,6 @@ package pcloud
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -22,7 +21,7 @@ func TestStat(t *testing.T) {
 		})
 	})
 
-	meta, err := c.Stat(context.Background(), 123)
+	meta, err := c.Stat(t.Context(), 123)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +41,7 @@ func TestStatByPath(t *testing.T) {
 		})
 	})
 
-	meta, err := c.StatByPath(context.Background(), "/photo.jpg")
+	meta, err := c.StatByPath(t.Context(), "/photo.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +57,7 @@ func TestDeleteFile(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.DeleteFile(context.Background(), 55); err != nil {
+	if err := c.DeleteFile(t.Context(), 55); err != nil {
 		t.Fatal(err)
 	}
 	if gotFileID != "55" {
@@ -73,7 +72,7 @@ func TestDeleteFileByPath(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.DeleteFileByPath(context.Background(), "/old.txt"); err != nil {
+	if err := c.DeleteFileByPath(t.Context(), "/old.txt"); err != nil {
 		t.Fatal(err)
 	}
 	if gotPath != "/old.txt" {
@@ -89,7 +88,7 @@ func TestUpload(t *testing.T) {
 	})
 
 	content := bytes.NewReader([]byte("hello"))
-	meta, err := c.Upload(context.Background(), 0, "hello.txt", content, nil)
+	meta, err := c.Upload(t.Context(), 0, "hello.txt", content, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

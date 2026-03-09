@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -19,7 +18,7 @@ func TestSearch(t *testing.T) {
 		})
 	})
 
-	items, err := c.Search(context.Background(), "report", nil)
+	items, err := c.Search(t.Context(), "report", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +38,7 @@ func TestSearchWithOpts(t *testing.T) {
 		json.NewEncoder(w).Encode(searchResponse{})
 	})
 
-	c.Search(context.Background(), "img", &SearchOpts{FolderID: 10, Recursive: true})
+	c.Search(t.Context(), "img", &SearchOpts{FolderID: 10, Recursive: true})
 	if gotFolderID != "10" {
 		t.Fatalf("want folderid=10, got %q", gotFolderID)
 	}
@@ -53,7 +52,7 @@ func TestSearchAPIError(t *testing.T) {
 		json.NewEncoder(w).Encode(searchResponse{Error: Error{Result: 2003, Message: "access denied"}})
 	})
 
-	_, err := c.Search(context.Background(), "secret", nil)
+	_, err := c.Search(t.Context(), "secret", nil)
 	if err == nil {
 		t.Fatal("expected error")
 	}

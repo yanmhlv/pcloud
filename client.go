@@ -1,6 +1,7 @@
 package pcloud
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -39,11 +40,8 @@ type Client struct {
 // NewClient creates a new Client for the given base URL.
 // Pass BaseURLUS or BaseURLEU; an empty string defaults to BaseURLUS.
 func NewClient(baseURL string) *Client {
-	if baseURL == "" {
-		baseURL = BaseURLUS
-	}
 	return &Client{
-		baseURL:    baseURL,
+		baseURL:    cmp.Or(baseURL, BaseURLUS),
 		httpClient: &http.Client{Timeout: DefaultTimeout},
 		logger:     newNoopLogger(),
 		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), 10),

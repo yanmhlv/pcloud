@@ -22,7 +22,7 @@ func getClient(t *testing.T) (*pcloud.Client, context.Context) {
 
 	baseURL := os.Getenv("PCLOUD_BASE_URL")
 	c := pcloud.NewClient(baseURL)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	if err := c.Login(ctx, username, password); err != nil {
 		t.Fatalf("login failed: %v", err)
@@ -40,7 +40,7 @@ func TestAuth(t *testing.T) {
 
 	baseURL := os.Getenv("PCLOUD_BASE_URL")
 	c := pcloud.NewClient(baseURL)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("Login", func(t *testing.T) {
 		if err := c.Login(ctx, username, password); err != nil {

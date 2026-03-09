@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -19,7 +18,7 @@ func TestGetFileLink(t *testing.T) {
 		})
 	})
 
-	link, err := c.GetFileLink(context.Background(), 10)
+	link, err := c.GetFileLink(t.Context(), 10)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +40,7 @@ func TestGetFileLinkByPath(t *testing.T) {
 		})
 	})
 
-	link, err := c.GetFileLinkByPath(context.Background(), "/docs/report.pdf")
+	link, err := c.GetFileLinkByPath(t.Context(), "/docs/report.pdf")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +59,7 @@ func TestGetFileLinkWithOpts(t *testing.T) {
 		})
 	})
 
-	c.GetFileLinkWithOpts(context.Background(), 10, &FileLinkOpts{ForceDownload: true})
+	c.GetFileLinkWithOpts(t.Context(), 10, &FileLinkOpts{ForceDownload: true})
 	if gotForceDownload != "1" {
 		t.Fatalf("want forcedownload=1, got %q", gotForceDownload)
 	}
@@ -71,7 +70,7 @@ func TestGetFileLinkAPIError(t *testing.T) {
 		json.NewEncoder(w).Encode(FileLink{Error: Error{Result: 2005, Message: "not found"}})
 	})
 
-	_, err := c.GetFileLink(context.Background(), 999)
+	_, err := c.GetFileLink(t.Context(), 999)
 	if err == nil {
 		t.Fatal("expected error")
 	}

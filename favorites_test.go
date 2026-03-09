@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -21,7 +20,7 @@ func TestListFavorites(t *testing.T) {
 		})
 	})
 
-	items, err := c.ListFavorites(context.Background())
+	items, err := c.ListFavorites(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +36,7 @@ func TestAddFavorite(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.AddFavorite(context.Background(), 55); err != nil {
+	if err := c.AddFavorite(t.Context(), 55); err != nil {
 		t.Fatal(err)
 	}
 	if gotFileID != "55" {
@@ -52,7 +51,7 @@ func TestAddFavoriteByPath(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.AddFavoriteByPath(context.Background(), "/docs/fav.pdf"); err != nil {
+	if err := c.AddFavoriteByPath(t.Context(), "/docs/fav.pdf"); err != nil {
 		t.Fatal(err)
 	}
 	if gotPath != "/docs/fav.pdf" {
@@ -67,7 +66,7 @@ func TestRemoveFavorite(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.RemoveFavorite(context.Background(), 77); err != nil {
+	if err := c.RemoveFavorite(t.Context(), 77); err != nil {
 		t.Fatal(err)
 	}
 	if gotFileID != "77" {
@@ -82,7 +81,7 @@ func TestRemoveFavoriteByPath(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.RemoveFavoriteByPath(context.Background(), "/docs/unfav.pdf"); err != nil {
+	if err := c.RemoveFavoriteByPath(t.Context(), "/docs/unfav.pdf"); err != nil {
 		t.Fatal(err)
 	}
 	if gotPath != "/docs/unfav.pdf" {

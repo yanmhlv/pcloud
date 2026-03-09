@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -18,7 +17,7 @@ func TestListFolder(t *testing.T) {
 		})
 	})
 
-	meta, err := c.ListFolder(context.Background(), 0, nil)
+	meta, err := c.ListFolder(t.Context(), 0, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,7 +37,7 @@ func TestListFolderByPath(t *testing.T) {
 		})
 	})
 
-	meta, err := c.ListFolderByPath(context.Background(), "/myfolder", nil)
+	meta, err := c.ListFolderByPath(t.Context(), "/myfolder", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +51,7 @@ func TestListFolderAPIError(t *testing.T) {
 		json.NewEncoder(w).Encode(metadataResponse{Error: Error{Result: 2005, Message: "not found"}})
 	})
 
-	_, err := c.ListFolder(context.Background(), 999, nil)
+	_, err := c.ListFolder(t.Context(), 999, nil)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -65,7 +64,7 @@ func TestListFolderOpts(t *testing.T) {
 		json.NewEncoder(w).Encode(metadataResponse{})
 	})
 
-	c.ListFolder(context.Background(), 0, &ListFolderOpts{Recursive: true})
+	c.ListFolder(t.Context(), 0, &ListFolderOpts{Recursive: true})
 	if gotRecursive != "1" {
 		t.Fatalf("want recursive=1, got %q", gotRecursive)
 	}
@@ -78,7 +77,7 @@ func TestStatFolder(t *testing.T) {
 		})
 	})
 
-	meta, err := c.StatFolder(context.Background(), 42)
+	meta, err := c.StatFolder(t.Context(), 42)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +97,7 @@ func TestStatFolderByPath(t *testing.T) {
 		})
 	})
 
-	meta, err := c.StatFolderByPath(context.Background(), "/docs")
+	meta, err := c.StatFolderByPath(t.Context(), "/docs")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +113,7 @@ func TestCreateFolder(t *testing.T) {
 		})
 	})
 
-	meta, err := c.CreateFolder(context.Background(), 0, "new-dir")
+	meta, err := c.CreateFolder(t.Context(), 0, "new-dir")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +138,7 @@ func TestWalkYieldsContents(t *testing.T) {
 	})
 
 	var names []string
-	for item, err := range c.Walk(context.Background(), 0) {
+	for item, err := range c.Walk(t.Context(), 0) {
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -166,7 +165,7 @@ func TestWalkEarlyBreak(t *testing.T) {
 	})
 
 	var count int
-	for _, err := range c.Walk(context.Background(), 0) {
+	for _, err := range c.Walk(t.Context(), 0) {
 		if err != nil {
 			t.Fatal(err)
 		}

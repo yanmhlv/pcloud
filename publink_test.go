@@ -1,7 +1,6 @@
 package pcloud
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"testing"
@@ -14,7 +13,7 @@ func TestCreateFilePublicLink(t *testing.T) {
 		json.NewEncoder(w).Encode(PublicLink{LinkID: 7, Code: "abc"})
 	})
 
-	link, err := c.CreateFilePublicLink(context.Background(), 42, nil)
+	link, err := c.CreateFilePublicLink(t.Context(), 42, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +32,7 @@ func TestCreateFilePublicLinkByPath(t *testing.T) {
 		json.NewEncoder(w).Encode(PublicLink{LinkID: 8})
 	})
 
-	_, err := c.CreateFilePublicLinkByPath(context.Background(), "/report.pdf", nil)
+	_, err := c.CreateFilePublicLinkByPath(t.Context(), "/report.pdf", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +49,7 @@ func TestCreateFilePublicLinkOpts(t *testing.T) {
 		json.NewEncoder(w).Encode(PublicLink{})
 	})
 
-	c.CreateFilePublicLink(context.Background(), 1, &PublicLinkOpts{
+	c.CreateFilePublicLink(t.Context(), 1, &PublicLinkOpts{
 		ExpireAt:     1700000000,
 		MaxDownloads: 5,
 	})
@@ -69,7 +68,7 @@ func TestListPublicLinks(t *testing.T) {
 		})
 	})
 
-	links, err := c.ListPublicLinks(context.Background())
+	links, err := c.ListPublicLinks(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +84,7 @@ func TestDeletePublicLink(t *testing.T) {
 		json.NewEncoder(w).Encode(Error{Result: 0})
 	})
 
-	if err := c.DeletePublicLink(context.Background(), 15); err != nil {
+	if err := c.DeletePublicLink(t.Context(), 15); err != nil {
 		t.Fatal(err)
 	}
 	if gotLinkID != "15" {

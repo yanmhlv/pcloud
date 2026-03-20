@@ -61,32 +61,6 @@ func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFo
 	return m, nil
 }
 
-func (c *Client) statFolder(ctx context.Context, params url.Values) (*Metadata, error) {
-	var resp metadataResponse
-	if err := c.do(ctx, "stat", params, &resp); err != nil {
-		return nil, err
-	}
-	return &resp.Metadata, nil
-}
-
-// StatFolder returns metadata for a folder identified by numeric ID.
-func (c *Client) StatFolder(ctx context.Context, folderID uint64) (*Metadata, error) {
-	m, err := c.statFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}})
-	if err != nil {
-		return nil, fmt.Errorf("stat folder %d: %w", folderID, err)
-	}
-	return m, nil
-}
-
-// StatFolderByPath returns metadata for a folder identified by path.
-func (c *Client) StatFolderByPath(ctx context.Context, path string) (*Metadata, error) {
-	m, err := c.statFolder(ctx, url.Values{"path": {path}})
-	if err != nil {
-		return nil, fmt.Errorf("stat folder %s: %w", path, err)
-	}
-	return m, nil
-}
-
 func (c *Client) createFolder(ctx context.Context, params url.Values) (*Metadata, error) {
 	var resp metadataResponse
 	if err := c.do(ctx, "createfolder", params, &resp); err != nil {

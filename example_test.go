@@ -214,7 +214,7 @@ func ExampleClient_GetFileLink() {
 	c.Login(ctx, "user@example.com", "password")
 	defer c.Logout(ctx)
 
-	link, err := c.GetFileLink(ctx, 12345)
+	link, err := c.GetFileLink(ctx, 12345, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

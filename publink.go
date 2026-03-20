@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 // PublicLink represents a shareable public link to a file or folder.
@@ -26,7 +27,7 @@ type PublicLink struct {
 type PublicLinkOpts struct {
 	MaxDownloads uint64
 	MaxTraffic   uint64
-	ExpireAt     int64
+	ExpireAt     time.Time
 	ShortLink    bool
 }
 
@@ -45,8 +46,8 @@ func applyPublicLinkOpts(params url.Values, opts *PublicLinkOpts) {
 	if opts.MaxTraffic > 0 {
 		params.Set("maxtraffic", strconv.FormatUint(opts.MaxTraffic, 10))
 	}
-	if opts.ExpireAt > 0 {
-		params.Set("expire", strconv.FormatInt(opts.ExpireAt, 10))
+	if !opts.ExpireAt.IsZero() {
+		params.Set("expire", strconv.FormatInt(opts.ExpireAt.Unix(), 10))
 	}
 	if opts.ShortLink {
 		params.Set("shortlink", "1")

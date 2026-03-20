@@ -29,7 +29,7 @@ type Share struct {
 	CanModify       bool   `json:"canmodify"`
 	CanDelete       bool   `json:"candelete"`
 	Created         Time   `json:"created"`
-	Message         string `json:"message,omitempty"`
+	Note            string `json:"message,omitempty"`
 	ShareName       string `json:"sharename,omitempty"`
 	Accepted        bool   `json:"accepted,omitempty"`
 	IncomingRequest bool   `json:"incoming,omitempty"`
@@ -37,7 +37,7 @@ type Share struct {
 
 // ShareOpts controls optional parameters for sharing a folder.
 type ShareOpts struct {
-	Message string
+	Note string
 }
 
 type listSharesResponse struct {
@@ -97,8 +97,8 @@ func (c *Client) ShareFolderByPath(ctx context.Context, path string, email strin
 
 func (c *Client) shareFolder(ctx context.Context, params url.Values, perms SharePermissions, opts *ShareOpts) (*Share, error) {
 	applyPermissions(params, perms)
-	if opts != nil && opts.Message != "" {
-		params.Set("message", opts.Message)
+	if opts != nil && opts.Note != "" {
+		params.Set("message", opts.Note)
 	}
 
 	var resp Share

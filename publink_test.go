@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestCreateFilePublicLink(t *testing.T) {
@@ -50,7 +51,7 @@ func TestCreateFilePublicLinkOpts(t *testing.T) {
 	})
 
 	c.CreateFilePublicLink(t.Context(), 1, &PublicLinkOpts{
-		ExpireAt:     1700000000,
+		ExpireAt:     time.Unix(1700000000, 0),
 		MaxDownloads: 5,
 	})
 	if gotExpire != "1700000000" {

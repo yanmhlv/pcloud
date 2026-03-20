@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
-	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/time/rate"
@@ -23,8 +22,6 @@ const (
 	BaseURLEU = "https://eapi.pcloud.com"
 	// MinRPM is the minimum allowed rate limit in requests per minute.
 	MinRPM = 100.0
-	// DefaultTimeout is the default HTTP client timeout.
-	DefaultTimeout = 30 * time.Second
 )
 
 // Client is a pCloud API client. Use NewClient to create one.
@@ -44,7 +41,7 @@ type Client struct {
 func NewClient(baseURL string) *Client {
 	return &Client{
 		baseURL:    cmp.Or(baseURL, BaseURLUS),
-		httpClient: &http.Client{Timeout: DefaultTimeout},
+		httpClient: &http.Client{},
 		logger:     newNoopLogger(),
 		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), 10),
 	}

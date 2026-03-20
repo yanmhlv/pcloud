@@ -38,26 +38,7 @@ func (c *Client) getFileLink(ctx context.Context, params url.Values, opts *FileL
 	return &resp, nil
 }
 
-// GetFileLink returns a temporary direct-download URL for a file by numeric ID.
-func (c *Client) GetFileLink(ctx context.Context, fileID uint64) (*FileLink, error) {
-	fl, err := c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, nil)
-	if err != nil {
-		return nil, fmt.Errorf("get file link %d: %w", fileID, err)
-	}
-	return fl, nil
-}
-
-// GetFileLinkByPath returns a temporary direct-download URL for a file by path.
-func (c *Client) GetFileLinkByPath(ctx context.Context, path string) (*FileLink, error) {
-	fl, err := c.getFileLink(ctx, url.Values{"path": {path}}, nil)
-	if err != nil {
-		return nil, fmt.Errorf("get file link %s: %w", path, err)
-	}
-	return fl, nil
-}
-
-// GetFileLinkWithOpts returns a direct-download URL for a file by numeric ID with options.
-func (c *Client) GetFileLinkWithOpts(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
+func (c *Client) GetFileLink(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
 	fl, err := c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("get file link %d: %w", fileID, err)
@@ -65,8 +46,7 @@ func (c *Client) GetFileLinkWithOpts(ctx context.Context, fileID uint64, opts *F
 	return fl, nil
 }
 
-// GetFileLinkByPathWithOpts returns a direct-download URL for a file by path with options.
-func (c *Client) GetFileLinkByPathWithOpts(ctx context.Context, path string, opts *FileLinkOpts) (*FileLink, error) {
+func (c *Client) GetFileLinkByPath(ctx context.Context, path string, opts *FileLinkOpts) (*FileLink, error) {
 	fl, err := c.getFileLink(ctx, url.Values{"path": {path}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("get file link %s: %w", path, err)

@@ -18,7 +18,7 @@ func TestGetFileLink(t *testing.T) {
 		})
 	})
 
-	link, err := c.GetFileLink(t.Context(), 10)
+	link, err := c.GetFileLink(t.Context(), 10, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func TestGetFileLinkByPath(t *testing.T) {
 		})
 	})
 
-	link, err := c.GetFileLinkByPath(t.Context(), "/docs/report.pdf")
+	link, err := c.GetFileLinkByPath(t.Context(), "/docs/report.pdf", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestGetFileLinkByPath(t *testing.T) {
 	}
 }
 
-func TestGetFileLinkWithOpts(t *testing.T) {
+func TestGetFileLinkOpts(t *testing.T) {
 	var gotForceDownload string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotForceDownload = r.URL.Query().Get("forcedownload")
@@ -59,7 +59,7 @@ func TestGetFileLinkWithOpts(t *testing.T) {
 		})
 	})
 
-	c.GetFileLinkWithOpts(t.Context(), 10, &FileLinkOpts{ForceDownload: true})
+	c.GetFileLink(t.Context(), 10, &FileLinkOpts{ForceDownload: true})
 	if gotForceDownload != "1" {
 		t.Fatalf("want forcedownload=1, got %q", gotForceDownload)
 	}
@@ -70,7 +70,7 @@ func TestGetFileLinkAPIError(t *testing.T) {
 		json.NewEncoder(w).Encode(FileLink{Error: Error{Result: 2005, Message: "not found"}})
 	})
 
-	_, err := c.GetFileLink(t.Context(), 999)
+	_, err := c.GetFileLink(t.Context(), 999, nil)
 	if err == nil {
 		t.Fatal("expected error")
 	}

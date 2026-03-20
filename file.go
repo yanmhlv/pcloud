@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 type uploadResponse struct {
@@ -25,8 +26,8 @@ type ProgressFunc func(transferred, total int64)
 type UploadOpts struct {
 	NoPartial      bool
 	RenameIfExists bool
-	ModifiedTime   int64
-	CreatedTime    int64
+	ModifiedTime   time.Time
+	CreatedTime    time.Time
 	OnProgress     ProgressFunc
 }
 
@@ -84,11 +85,11 @@ func applyUploadOpts(params url.Values, opts *UploadOpts) {
 	if opts.RenameIfExists {
 		params.Set("renameifexists", "1")
 	}
-	if opts.ModifiedTime > 0 {
-		params.Set("mtime", strconv.FormatInt(opts.ModifiedTime, 10))
+	if !opts.ModifiedTime.IsZero() {
+		params.Set("mtime", strconv.FormatInt(opts.ModifiedTime.Unix(), 10))
 	}
-	if opts.CreatedTime > 0 {
-		params.Set("ctime", strconv.FormatInt(opts.CreatedTime, 10))
+	if !opts.CreatedTime.IsZero() {
+		params.Set("ctime", strconv.FormatInt(opts.CreatedTime.Unix(), 10))
 	}
 }
 
@@ -184,7 +185,7 @@ func (c *Client) UploadByPath(ctx context.Context, path, filename string, conten
 // Download downloads a file by ID and returns the response body.
 // The caller must close the returned ReadCloser.
 func (c *Client) Download(ctx context.Context, fileID uint64, opts *DownloadOpts) (io.ReadCloser, error) {
-	link, err := c.GetFileLink(ctx, fileID)
+	link, err := c.GetFileLink(ctx, fileID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("download file %d: %w", fileID, err)
 	}
@@ -198,7 +199,7 @@ func (c *Client) Download(ctx context.Context, fileID uint64, opts *DownloadOpts
 // DownloadByPath downloads a file by path and returns the response body.
 // The caller must close the returned ReadCloser.
 func (c *Client) DownloadByPath(ctx context.Context, path string, opts *DownloadOpts) (io.ReadCloser, error) {
-	link, err := c.GetFileLinkByPath(ctx, path)
+	link, err := c.GetFileLinkByPath(ctx, path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("download %s: %w", path, err)
 	}

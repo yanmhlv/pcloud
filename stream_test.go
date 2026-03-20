@@ -71,7 +71,7 @@ func TestGetFileLinkOpts(t *testing.T) {
 func TestGetFileLinkAPIError(t *testing.T) {
 	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(FileLink{Error: Error{Result: 2005, Message: "not found"}})
+		json.NewEncoder(w).Encode(Error{Result: 2005, Message: "not found"})
 	})
 
 	_, err := c.GetFileLink(t.Context(), 999, nil)

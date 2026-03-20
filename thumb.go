@@ -13,6 +13,11 @@ type ThumbOpts struct {
 	Type string // "png" or "jpeg"; defaults to "png" if empty
 }
 
+type thumbResponse struct {
+	Error
+	FileLink
+}
+
 func applyThumbOpts(params url.Values, opts *ThumbOpts) {
 	if opts == nil {
 		return
@@ -39,11 +44,11 @@ func (c *Client) getThumbnail(ctx context.Context, params url.Values, width, hei
 	params.Set("size", fmt.Sprintf("%dx%d", width, height))
 	applyThumbOpts(params, opts)
 
-	var resp FileLink
+	var resp thumbResponse
 	if err := c.do(ctx, "getthumb", params, &resp); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &resp.FileLink, nil
 }
 
 // GetThumbnail returns a thumbnail download link for a file by numeric ID.

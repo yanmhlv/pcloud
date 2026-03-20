@@ -43,11 +43,16 @@ func (c *Client) Logout(ctx context.Context) error {
 	return nil
 }
 
+type userInfoResponse struct {
+	Error
+	UserInfo
+}
+
 // UserInfo returns the account details for the authenticated user.
 func (c *Client) UserInfo(ctx context.Context) (*UserInfo, error) {
-	var resp UserInfo
+	var resp userInfoResponse
 	if err := c.do(ctx, "userinfo", url.Values{}, &resp); err != nil {
 		return nil, fmt.Errorf("userinfo: %w", err)
 	}
-	return &resp, nil
+	return &resp.UserInfo, nil
 }

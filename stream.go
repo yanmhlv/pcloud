@@ -29,13 +29,18 @@ func applyLinkOpts(params url.Values, opts *FileLinkOpts) {
 	}
 }
 
+type fileLinkResponse struct {
+	Error
+	FileLink
+}
+
 func (c *Client) getFileLink(ctx context.Context, params url.Values, opts *FileLinkOpts) (*FileLink, error) {
 	applyLinkOpts(params, opts)
-	var resp FileLink
+	var resp fileLinkResponse
 	if err := c.do(ctx, "getfilelink", params, &resp); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &resp.FileLink, nil
 }
 
 func (c *Client) GetFileLink(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
@@ -59,11 +64,11 @@ func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint strin
 		"fileid": {strconv.FormatUint(fileID, 10)},
 	}
 
-	var resp FileLink
+	var resp fileLinkResponse
 	if err := c.do(ctx, endpoint, params, &resp); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &resp.FileLink, nil
 }
 
 // GetVideoLink returns a streaming URL for a video file.

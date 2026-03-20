@@ -92,7 +92,6 @@ type Revision struct {
 
 // UserInfo holds account details returned by the userinfo endpoint.
 type UserInfo struct {
-	Error
 	UserID         uint64 `json:"userid"`
 	Email          string `json:"email"`
 	EmailVerified  bool   `json:"emailverified"`
@@ -106,7 +105,6 @@ type UserInfo struct {
 
 // FileLink holds a temporary direct-download URL returned by streaming endpoints.
 type FileLink struct {
-	Error
 	Path    string   `json:"path"`
 	Expires string   `json:"expires"`
 	Hosts   []string `json:"hosts"`

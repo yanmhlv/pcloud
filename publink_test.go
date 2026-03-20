@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestCreateFilePublicLink(t *testing.T) {
+	t.Parallel()
 	var gotFileID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotFileID = r.URL.Query().Get("fileid")
@@ -26,6 +28,7 @@ func TestCreateFilePublicLink(t *testing.T) {
 }
 
 func TestCreateFilePublicLinkByPath(t *testing.T) {
+	t.Parallel()
 	var gotPath string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Query().Get("path")
@@ -42,6 +45,7 @@ func TestCreateFilePublicLinkByPath(t *testing.T) {
 }
 
 func TestCreateFilePublicLinkOpts(t *testing.T) {
+	t.Parallel()
 	var gotExpire, gotMaxDownloads string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotExpire = r.URL.Query().Get("expire")
@@ -50,7 +54,7 @@ func TestCreateFilePublicLinkOpts(t *testing.T) {
 	})
 
 	c.CreateFilePublicLink(t.Context(), 1, &PublicLinkOpts{
-		ExpireAt:     1700000000,
+		ExpireAt:     time.Unix(1700000000, 0),
 		MaxDownloads: 5,
 	})
 	if gotExpire != "1700000000" {
@@ -62,6 +66,7 @@ func TestCreateFilePublicLinkOpts(t *testing.T) {
 }
 
 func TestListPublicLinks(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(listPublicLinksResponse{
 			PubLinks: []PublicLink{{LinkID: 1}, {LinkID: 2}},
@@ -78,6 +83,7 @@ func TestListPublicLinks(t *testing.T) {
 }
 
 func TestDeletePublicLink(t *testing.T) {
+	t.Parallel()
 	var gotLinkID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotLinkID = r.URL.Query().Get("linkid")

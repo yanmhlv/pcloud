@@ -2,6 +2,7 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -37,24 +38,20 @@ func (c *Client) getFileLink(ctx context.Context, params url.Values, opts *FileL
 	return &resp, nil
 }
 
-// GetFileLink returns a temporary direct-download URL for a file by numeric ID.
-func (c *Client) GetFileLink(ctx context.Context, fileID uint64) (*FileLink, error) {
-	return c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, nil)
+func (c *Client) GetFileLink(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
+	fl, err := c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("get file link %d: %w", fileID, err)
+	}
+	return fl, nil
 }
 
-// GetFileLinkByPath returns a temporary direct-download URL for a file by path.
-func (c *Client) GetFileLinkByPath(ctx context.Context, path string) (*FileLink, error) {
-	return c.getFileLink(ctx, url.Values{"path": {path}}, nil)
-}
-
-// GetFileLinkWithOpts returns a direct-download URL for a file by numeric ID with options.
-func (c *Client) GetFileLinkWithOpts(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
-	return c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
-}
-
-// GetFileLinkByPathWithOpts returns a direct-download URL for a file by path with options.
-func (c *Client) GetFileLinkByPathWithOpts(ctx context.Context, path string, opts *FileLinkOpts) (*FileLink, error) {
-	return c.getFileLink(ctx, url.Values{"path": {path}}, opts)
+func (c *Client) GetFileLinkByPath(ctx context.Context, path string, opts *FileLinkOpts) (*FileLink, error) {
+	fl, err := c.getFileLink(ctx, url.Values{"path": {path}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("get file link %s: %w", path, err)
+	}
+	return fl, nil
 }
 
 func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint string) (*FileLink, error) {
@@ -71,15 +68,27 @@ func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint strin
 
 // GetVideoLink returns a streaming URL for a video file.
 func (c *Client) GetVideoLink(ctx context.Context, fileID uint64) (*FileLink, error) {
-	return c.getMediaLink(ctx, fileID, "getvideolink")
+	fl, err := c.getMediaLink(ctx, fileID, "getvideolink")
+	if err != nil {
+		return nil, fmt.Errorf("get video link %d: %w", fileID, err)
+	}
+	return fl, nil
 }
 
 // GetAudioLink returns a streaming URL for an audio file.
 func (c *Client) GetAudioLink(ctx context.Context, fileID uint64) (*FileLink, error) {
-	return c.getMediaLink(ctx, fileID, "getaudiolink")
+	fl, err := c.getMediaLink(ctx, fileID, "getaudiolink")
+	if err != nil {
+		return nil, fmt.Errorf("get audio link %d: %w", fileID, err)
+	}
+	return fl, nil
 }
 
 // GetHLSLink returns an HLS streaming URL for a video file.
 func (c *Client) GetHLSLink(ctx context.Context, fileID uint64) (*FileLink, error) {
-	return c.getMediaLink(ctx, fileID, "gethlslink")
+	fl, err := c.getMediaLink(ctx, fileID, "gethlslink")
+	if err != nil {
+		return nil, fmt.Errorf("get hls link %d: %w", fileID, err)
+	}
+	return fl, nil
 }

@@ -6,6 +6,7 @@ import (
 )
 
 func TestHashUnmarshalString(t *testing.T) {
+	t.Parallel()
 	var h Hash
 	if err := json.Unmarshal([]byte(`"abc123"`), &h); err != nil {
 		t.Fatal(err)
@@ -16,6 +17,7 @@ func TestHashUnmarshalString(t *testing.T) {
 }
 
 func TestHashUnmarshalNumber(t *testing.T) {
+	t.Parallel()
 	var h Hash
 	if err := json.Unmarshal([]byte(`12345678`), &h); err != nil {
 		t.Fatal(err)
@@ -26,6 +28,7 @@ func TestHashUnmarshalNumber(t *testing.T) {
 }
 
 func TestHashUnmarshalInvalid(t *testing.T) {
+	t.Parallel()
 	var h Hash
 	if err := json.Unmarshal([]byte(`true`), &h); err == nil {
 		t.Fatal("expected error for boolean hash")
@@ -33,6 +36,7 @@ func TestHashUnmarshalInvalid(t *testing.T) {
 }
 
 func TestTimeUnmarshalValid(t *testing.T) {
+	t.Parallel()
 	var ts Time
 	if err := json.Unmarshal([]byte(`"Mon, 02 Jan 2006 15:04:05 -0700"`), &ts); err != nil {
 		t.Fatal(err)
@@ -43,6 +47,7 @@ func TestTimeUnmarshalValid(t *testing.T) {
 }
 
 func TestTimeUnmarshalEmpty(t *testing.T) {
+	t.Parallel()
 	var ts Time
 	if err := json.Unmarshal([]byte(`""`), &ts); err != nil {
 		t.Fatal(err)
@@ -53,12 +58,13 @@ func TestTimeUnmarshalEmpty(t *testing.T) {
 }
 
 func TestErrorErr(t *testing.T) {
+	t.Parallel()
 	e := &Error{Result: 0}
 	if e.Err() != nil {
 		t.Fatal("result=0 should return nil error")
 	}
 
-	e = &Error{Result: 2005, Message: "not found"}
+	e = &Error{Result: ErrNotFound, Message: "not found"}
 	if e.Err() == nil {
 		t.Fatal("result!=0 should return error")
 	}
@@ -68,13 +74,15 @@ func TestErrorErr(t *testing.T) {
 }
 
 func TestErrorErrNoMessage(t *testing.T) {
-	e := &Error{Result: 1000}
+	t.Parallel()
+	e := &Error{Result: ErrAuthRequired}
 	if e.Error() != "pcloud error 1000" {
 		t.Fatalf("unexpected error string: %s", e.Error())
 	}
 }
 
 func TestFileLinkURL(t *testing.T) {
+	t.Parallel()
 	f := &FileLink{Path: "/dl/file.txt", Hosts: []string{"cdn1.pcloud.com"}}
 	want := "https://cdn1.pcloud.com/dl/file.txt"
 	if f.URL() != want {
@@ -83,6 +91,7 @@ func TestFileLinkURL(t *testing.T) {
 }
 
 func TestFileLinkURLNoHosts(t *testing.T) {
+	t.Parallel()
 	f := &FileLink{Path: "/dl/file.txt"}
 	if f.URL() != "" {
 		t.Fatalf("expected empty URL, got %q", f.URL())

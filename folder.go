@@ -2,6 +2,7 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"iter"
 	"net/url"
 	"strconv"
@@ -44,30 +45,20 @@ func (c *Client) listFolder(ctx context.Context, params url.Values, opts *ListFo
 
 // ListFolder returns the contents of a folder identified by numeric ID.
 func (c *Client) ListFolder(ctx context.Context, folderID uint64, opts *ListFolderOpts) (*Metadata, error) {
-	return c.listFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
+	m, err := c.listFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("list folder %d: %w", folderID, err)
+	}
+	return m, nil
 }
 
 // ListFolderByPath returns the contents of a folder identified by path.
 func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFolderOpts) (*Metadata, error) {
-	return c.listFolder(ctx, url.Values{"path": {path}}, opts)
-}
-
-func (c *Client) statFolder(ctx context.Context, params url.Values) (*Metadata, error) {
-	var resp metadataResponse
-	if err := c.do(ctx, "stat", params, &resp); err != nil {
-		return nil, err
+	m, err := c.listFolder(ctx, url.Values{"path": {path}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("list folder %s: %w", path, err)
 	}
-	return &resp.Metadata, nil
-}
-
-// StatFolder returns metadata for a folder identified by numeric ID.
-func (c *Client) StatFolder(ctx context.Context, folderID uint64) (*Metadata, error) {
-	return c.statFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}})
-}
-
-// StatFolderByPath returns metadata for a folder identified by path.
-func (c *Client) StatFolderByPath(ctx context.Context, path string) (*Metadata, error) {
-	return c.statFolder(ctx, url.Values{"path": {path}})
+	return m, nil
 }
 
 func (c *Client) createFolder(ctx context.Context, params url.Values) (*Metadata, error) {
@@ -80,15 +71,23 @@ func (c *Client) createFolder(ctx context.Context, params url.Values) (*Metadata
 
 // CreateFolder creates a new folder inside parentID with the given name.
 func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
-	return c.createFolder(ctx, url.Values{
+	m, err := c.createFolder(ctx, url.Values{
 		"folderid": {strconv.FormatUint(parentID, 10)},
 		"name":     {name},
 	})
+	if err != nil {
+		return nil, fmt.Errorf("create folder %d/%s: %w", parentID, name, err)
+	}
+	return m, nil
 }
 
 // CreateFolderByPath creates a folder at the given absolute path.
 func (c *Client) CreateFolderByPath(ctx context.Context, path string) (*Metadata, error) {
-	return c.createFolder(ctx, url.Values{"path": {path}})
+	m, err := c.createFolder(ctx, url.Values{"path": {path}})
+	if err != nil {
+		return nil, fmt.Errorf("create folder %s: %w", path, err)
+	}
+	return m, nil
 }
 
 // CreateFolderIfNotExists creates a folder only if it does not already exist.
@@ -100,7 +99,7 @@ func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, n
 
 	var resp metadataResponse
 	if err := c.do(ctx, "createfolderifnotexists", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create folder if not exists %d/%s: %w", parentID, name, err)
 	}
 	return &resp.Metadata, nil
 }
@@ -114,7 +113,7 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 
 	var resp metadataResponse
 	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rename folder %d: %w", folderID, err)
 	}
 	return &resp.Metadata, nil
 }
@@ -129,7 +128,7 @@ func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, na
 
 	var resp metadataResponse
 	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("move folder %d: %w", folderID, err)
 	}
 	return &resp.Metadata, nil
 }
@@ -143,7 +142,7 @@ func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*
 
 	var resp metadataResponse
 	if err := c.do(ctx, "copyfolder", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("copy folder %d: %w", folderID, err)
 	}
 	return &resp.Metadata, nil
 }
@@ -155,7 +154,10 @@ func (c *Client) DeleteFolder(ctx context.Context, folderID uint64) error {
 	}
 
 	var resp Error
-	return c.do(ctx, "deletefolder", params, &resp)
+	if err := c.do(ctx, "deletefolder", params, &resp); err != nil {
+		return fmt.Errorf("delete folder %d: %w", folderID, err)
+	}
+	return nil
 }
 
 // DeleteFolderRecursive deletes a folder and all its contents.
@@ -165,7 +167,10 @@ func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) err
 	}
 
 	var resp Error
-	return c.do(ctx, "deletefolderrecursive", params, &resp)
+	if err := c.do(ctx, "deletefolderrecursive", params, &resp); err != nil {
+		return fmt.Errorf("delete folder recursive %d: %w", folderID, err)
+	}
+	return nil
 }
 
 func walkContents(ctx context.Context, contents []Metadata, yield func(Metadata, error) bool) {

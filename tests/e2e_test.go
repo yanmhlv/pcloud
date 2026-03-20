@@ -320,7 +320,7 @@ func TestStreaming(t *testing.T) {
 	}
 
 	t.Run("GetFileLink", func(t *testing.T) {
-		link, err := c.GetFileLink(ctx, meta.FileID)
+		link, err := c.GetFileLink(ctx, meta.FileID, nil)
 		if err != nil {
 			t.Fatalf("get file link failed: %v", err)
 		}
@@ -336,8 +336,8 @@ func TestStreaming(t *testing.T) {
 		}
 	})
 
-	t.Run("GetFileLinkWithOpts", func(t *testing.T) {
-		link, err := c.GetFileLinkWithOpts(ctx, meta.FileID, &pcloud.FileLinkOpts{
+	t.Run("GetFileLinkOpts", func(t *testing.T) {
+		link, err := c.GetFileLink(ctx, meta.FileID, &pcloud.FileLinkOpts{
 			ForceDownload: true,
 		})
 		if err != nil {

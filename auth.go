@@ -2,6 +2,7 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 )
 
@@ -20,10 +21,12 @@ func (c *Client) Login(ctx context.Context, username, password string) error {
 
 	var resp loginResponse
 	if err := c.do(ctx, "userinfo", params, &resp); err != nil {
-		return err
+		return fmt.Errorf("login: %w", err)
 	}
 
+	c.mu.Lock()
 	c.auth = resp.Auth
+	c.mu.Unlock()
 	return nil
 }
 
@@ -31,10 +34,12 @@ func (c *Client) Login(ctx context.Context, username, password string) error {
 func (c *Client) Logout(ctx context.Context) error {
 	var resp Error
 	if err := c.do(ctx, "logout", url.Values{}, &resp); err != nil {
-		return err
+		return fmt.Errorf("logout: %w", err)
 	}
 
+	c.mu.Lock()
 	c.auth = ""
+	c.mu.Unlock()
 	return nil
 }
 
@@ -42,7 +47,7 @@ func (c *Client) Logout(ctx context.Context) error {
 func (c *Client) UserInfo(ctx context.Context) (*UserInfo, error) {
 	var resp UserInfo
 	if err := c.do(ctx, "userinfo", url.Values{}, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("userinfo: %w", err)
 	}
 	return &resp, nil
 }

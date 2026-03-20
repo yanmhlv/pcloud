@@ -7,6 +7,7 @@ import (
 )
 
 func TestShareFolder(t *testing.T) {
+	t.Parallel()
 	var gotEmail string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotEmail = r.URL.Query().Get("mail")
@@ -26,6 +27,7 @@ func TestShareFolder(t *testing.T) {
 }
 
 func TestShareFolderByPath(t *testing.T) {
+	t.Parallel()
 	var gotPath string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Query().Get("path")
@@ -42,6 +44,7 @@ func TestShareFolderByPath(t *testing.T) {
 }
 
 func TestListShares(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(listSharesResponse{
 			Shares:   []Share{{ShareID: 1}},

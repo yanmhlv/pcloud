@@ -135,6 +135,7 @@ linters:
           - errcheck
           - gocyclo
           - gocritic
+          - gosec
       - path: example_test\.go
         linters:
           - errcheck

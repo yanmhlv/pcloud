@@ -7,6 +7,7 @@ import (
 )
 
 func TestListFavorites(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/getfavourites" {
 			http.Error(w, "wrong endpoint", http.StatusNotFound)
@@ -30,6 +31,7 @@ func TestListFavorites(t *testing.T) {
 }
 
 func TestAddFavorite(t *testing.T) {
+	t.Parallel()
 	var gotFileID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotFileID = r.URL.Query().Get("fileid")
@@ -45,6 +47,7 @@ func TestAddFavorite(t *testing.T) {
 }
 
 func TestAddFavoriteByPath(t *testing.T) {
+	t.Parallel()
 	var gotPath string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Query().Get("path")
@@ -60,6 +63,7 @@ func TestAddFavoriteByPath(t *testing.T) {
 }
 
 func TestRemoveFavorite(t *testing.T) {
+	t.Parallel()
 	var gotFileID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotFileID = r.URL.Query().Get("fileid")
@@ -75,6 +79,7 @@ func TestRemoveFavorite(t *testing.T) {
 }
 
 func TestRemoveFavoriteByPath(t *testing.T) {
+	t.Parallel()
 	var gotPath string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Query().Get("path")

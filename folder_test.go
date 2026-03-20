@@ -7,6 +7,7 @@ import (
 )
 
 func TestListFolder(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("folderid") != "0" {
 			http.Error(w, "bad folderid", http.StatusBadRequest)
@@ -27,6 +28,7 @@ func TestListFolder(t *testing.T) {
 }
 
 func TestListFolderByPath(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("path") != "/myfolder" {
 			http.Error(w, "bad path", http.StatusBadRequest)
@@ -47,6 +49,7 @@ func TestListFolderByPath(t *testing.T) {
 }
 
 func TestListFolderAPIError(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(metadataResponse{Error: Error{Result: 2005, Message: "not found"}})
 	})
@@ -58,6 +61,7 @@ func TestListFolderAPIError(t *testing.T) {
 }
 
 func TestListFolderOpts(t *testing.T) {
+	t.Parallel()
 	var gotRecursive string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotRecursive = r.URL.Query().Get("recursive")
@@ -70,43 +74,8 @@ func TestListFolderOpts(t *testing.T) {
 	}
 }
 
-func TestStatFolder(t *testing.T) {
-	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(metadataResponse{
-			Metadata: Metadata{Name: "docs", IsFolder: true, FolderID: 42},
-		})
-	})
-
-	meta, err := c.StatFolder(t.Context(), 42)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if meta.FolderID != 42 {
-		t.Fatalf("want folderid=42, got %d", meta.FolderID)
-	}
-}
-
-func TestStatFolderByPath(t *testing.T) {
-	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("path") != "/docs" {
-			http.Error(w, "bad path", http.StatusBadRequest)
-			return
-		}
-		json.NewEncoder(w).Encode(metadataResponse{
-			Metadata: Metadata{Name: "docs", IsFolder: true},
-		})
-	})
-
-	meta, err := c.StatFolderByPath(t.Context(), "/docs")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if meta.Name != "docs" {
-		t.Fatalf("want docs, got %q", meta.Name)
-	}
-}
-
 func TestCreateFolder(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(metadataResponse{
 			Metadata: Metadata{Name: "new-dir", IsFolder: true, FolderID: 10},
@@ -123,6 +92,7 @@ func TestCreateFolder(t *testing.T) {
 }
 
 func TestWalkYieldsContents(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(metadataResponse{
 			Metadata: Metadata{
@@ -151,6 +121,7 @@ func TestWalkYieldsContents(t *testing.T) {
 }
 
 func TestWalkEarlyBreak(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(metadataResponse{
 			Metadata: Metadata{

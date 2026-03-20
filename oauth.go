@@ -2,21 +2,24 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"golang.org/x/oauth2"
 )
 
-// Endpoint is the OAuth2 endpoint for US-region pCloud accounts.
-var Endpoint = oauth2.Endpoint{
-	AuthURL:  BaseURLUS + "/oauth2_authorize",
-	TokenURL: BaseURLUS + "/oauth2_token",
+func EndpointUS() oauth2.Endpoint {
+	return oauth2.Endpoint{
+		AuthURL:  BaseURLUS + "/oauth2_authorize",
+		TokenURL: BaseURLUS + "/oauth2_token",
+	}
 }
 
-// EndpointEU is the OAuth2 endpoint for EU-region pCloud accounts.
-var EndpointEU = oauth2.Endpoint{
-	AuthURL:  BaseURLEU + "/oauth2_authorize",
-	TokenURL: BaseURLEU + "/oauth2_token",
+func EndpointEU() oauth2.Endpoint {
+	return oauth2.Endpoint{
+		AuthURL:  BaseURLEU + "/oauth2_authorize",
+		TokenURL: BaseURLEU + "/oauth2_token",
+	}
 }
 
 type exchangeResponse struct {
@@ -36,7 +39,7 @@ func (c *Client) ExchangeCode(ctx context.Context, cfg *oauth2.Config, code stri
 
 	var resp exchangeResponse
 	if err := c.do(ctx, "oauth2_token", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("exchange code: %w", err)
 	}
 
 	return &oauth2.Token{

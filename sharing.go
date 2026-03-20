@@ -2,6 +2,7 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -28,7 +29,7 @@ type Share struct {
 	CanModify       bool   `json:"canmodify"`
 	CanDelete       bool   `json:"candelete"`
 	Created         Time   `json:"created"`
-	Message         string `json:"message,omitempty"`
+	Note            string `json:"message,omitempty"`
 	ShareName       string `json:"sharename,omitempty"`
 	Accepted        bool   `json:"accepted,omitempty"`
 	IncomingRequest bool   `json:"incoming,omitempty"`
@@ -36,7 +37,7 @@ type Share struct {
 
 // ShareOpts controls optional parameters for sharing a folder.
 type ShareOpts struct {
-	Message string
+	Note string
 }
 
 type listSharesResponse struct {
@@ -74,7 +75,11 @@ func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string,
 		"folderid": {strconv.FormatUint(folderID, 10)},
 		"mail":     {email},
 	}
-	return c.shareFolder(ctx, params, perms, opts)
+	s, err := c.shareFolder(ctx, params, perms, opts)
+	if err != nil {
+		return nil, fmt.Errorf("share folder %d: %w", folderID, err)
+	}
+	return s, nil
 }
 
 // ShareFolderByPath shares a folder identified by path with another user by email.
@@ -83,13 +88,17 @@ func (c *Client) ShareFolderByPath(ctx context.Context, path string, email strin
 		"path": {path},
 		"mail": {email},
 	}
-	return c.shareFolder(ctx, params, perms, opts)
+	s, err := c.shareFolder(ctx, params, perms, opts)
+	if err != nil {
+		return nil, fmt.Errorf("share folder %s: %w", path, err)
+	}
+	return s, nil
 }
 
 func (c *Client) shareFolder(ctx context.Context, params url.Values, perms SharePermissions, opts *ShareOpts) (*Share, error) {
 	applyPermissions(params, perms)
-	if opts != nil && opts.Message != "" {
-		params.Set("message", opts.Message)
+	if opts != nil && opts.Note != "" {
+		params.Set("message", opts.Note)
 	}
 
 	var resp Share
@@ -103,7 +112,7 @@ func (c *Client) shareFolder(ctx context.Context, params url.Values, perms Share
 func (c *Client) ListShares(ctx context.Context) ([]Share, []Share, error) {
 	var resp listSharesResponse
 	if err := c.do(ctx, "listshares", url.Values{}, &resp); err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("list shares: %w", err)
 	}
 	return resp.Shares, resp.Requests, nil
 }
@@ -115,7 +124,10 @@ func (c *Client) AcceptShare(ctx context.Context, shareRequestID uint64) error {
 	}
 
 	var resp Error
-	return c.do(ctx, "acceptshare", params, &resp)
+	if err := c.do(ctx, "acceptshare", params, &resp); err != nil {
+		return fmt.Errorf("accept share %d: %w", shareRequestID, err)
+	}
+	return nil
 }
 
 // DeclineShare declines an incoming share request by its ID.
@@ -125,7 +137,10 @@ func (c *Client) DeclineShare(ctx context.Context, shareRequestID uint64) error 
 	}
 
 	var resp Error
-	return c.do(ctx, "declineshare", params, &resp)
+	if err := c.do(ctx, "declineshare", params, &resp); err != nil {
+		return fmt.Errorf("decline share %d: %w", shareRequestID, err)
+	}
+	return nil
 }
 
 // RemoveShare removes an active share by its ID.
@@ -135,7 +150,10 @@ func (c *Client) RemoveShare(ctx context.Context, shareID uint64) error {
 	}
 
 	var resp Error
-	return c.do(ctx, "removeshare", params, &resp)
+	if err := c.do(ctx, "removeshare", params, &resp); err != nil {
+		return fmt.Errorf("remove share %d: %w", shareID, err)
+	}
+	return nil
 }
 
 // CancelShareRequest cancels an outgoing share request by its ID.
@@ -145,7 +163,10 @@ func (c *Client) CancelShareRequest(ctx context.Context, shareRequestID uint64) 
 	}
 
 	var resp Error
-	return c.do(ctx, "cancelsharerequest", params, &resp)
+	if err := c.do(ctx, "cancelsharerequest", params, &resp); err != nil {
+		return fmt.Errorf("cancel share request %d: %w", shareRequestID, err)
+	}
+	return nil
 }
 
 // ChangeShare updates the permissions on an existing share.
@@ -156,5 +177,8 @@ func (c *Client) ChangeShare(ctx context.Context, shareID uint64, perms SharePer
 	applyPermissions(params, perms)
 
 	var resp Error
-	return c.do(ctx, "changeshare", params, &resp)
+	if err := c.do(ctx, "changeshare", params, &resp); err != nil {
+		return fmt.Errorf("change share %d: %w", shareID, err)
+	}
+	return nil
 }

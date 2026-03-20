@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"time"
+	"sync"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/time/rate"
@@ -22,13 +22,12 @@ const (
 	BaseURLEU = "https://eapi.pcloud.com"
 	// MinRPM is the minimum allowed rate limit in requests per minute.
 	MinRPM = 100.0
-	// DefaultTimeout is the default HTTP client timeout.
-	DefaultTimeout = 30 * time.Second
 )
 
 // Client is a pCloud API client. Use NewClient to create one.
 // All methods are safe for concurrent use.
 type Client struct {
+	mu          sync.RWMutex
 	baseURL     string
 	httpClient  *http.Client
 	auth        string
@@ -42,7 +41,7 @@ type Client struct {
 func NewClient(baseURL string) *Client {
 	return &Client{
 		baseURL:    cmp.Or(baseURL, BaseURLUS),
-		httpClient: &http.Client{Timeout: DefaultTimeout},
+		httpClient: &http.Client{},
 		logger:     newNoopLogger(),
 		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), 10),
 	}
@@ -50,11 +49,15 @@ func NewClient(baseURL string) *Client {
 
 // SetHTTPClient replaces the default HTTP client.
 func (c *Client) SetHTTPClient(client *http.Client) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.httpClient = client
 }
 
 // SetLogger attaches a structured logger for request diagnostics.
 func (c *Client) SetLogger(logger *slog.Logger) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.logger = logger
 }
 
@@ -64,6 +67,8 @@ func (c *Client) SetRateLimit(rpm float64) error {
 	if rpm < MinRPM {
 		return fmt.Errorf("rate limit %.1f RPM is below minimum %.1f RPM", rpm, MinRPM)
 	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), 10)
 	return nil
 }
@@ -71,6 +76,8 @@ func (c *Client) SetRateLimit(rpm float64) error {
 // SetTokenSource configures OAuth2 token-based authentication.
 // This takes precedence over username/password auth set via Login.
 func (c *Client) SetTokenSource(ts oauth2.TokenSource) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.tokenSource = ts
 }
 
@@ -79,12 +86,19 @@ func (c *Client) request(ctx context.Context, httpMethod, apiMethod string, para
 		return err
 	}
 
-	c.logger.Debug("request", "method", apiMethod)
-	if err := c.limiter.Wait(ctx); err != nil {
+	c.mu.RLock()
+	httpCl := c.httpClient
+	logger := c.logger
+	limiter := c.limiter
+	baseURL := c.baseURL
+	c.mu.RUnlock()
+
+	logger.Debug("request", "method", apiMethod)
+	if err := limiter.Wait(ctx); err != nil {
 		return err
 	}
 
-	reqURL := fmt.Sprintf("%s/%s?%s", c.baseURL, apiMethod, params.Encode())
+	reqURL := fmt.Sprintf("%s/%s?%s", baseURL, apiMethod, params.Encode())
 	req, err := http.NewRequestWithContext(ctx, httpMethod, reqURL, body)
 	if err != nil {
 		return err
@@ -93,15 +107,20 @@ func (c *Client) request(ctx context.Context, httpMethod, apiMethod string, para
 		req.Header.Set("Content-Type", contentType)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := httpCl.Do(req)
 	if err != nil {
-		c.logger.Error("request failed", "method", apiMethod, "error", err)
+		logger.Error("request failed", "method", apiMethod, "error", err)
 		return err
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		io.Copy(io.Discard, io.LimitReader(resp.Body, 512))
+		return fmt.Errorf("pcloud: %s %s: %s", httpMethod, apiMethod, resp.Status)
+	}
+
 	if err := json.NewDecoder(resp.Body).Decode(result); err != nil {
-		c.logger.Error("decode failed", "method", apiMethod, "error", err)
+		logger.Error("decode failed", "method", apiMethod, "error", err)
 		return err
 	}
 	return result.Err()
@@ -116,16 +135,21 @@ func (c *Client) doPost(ctx context.Context, method string, params url.Values, b
 }
 
 func (c *Client) setAuth(params url.Values) error {
-	if c.tokenSource != nil {
-		token, err := c.tokenSource.Token()
+	c.mu.RLock()
+	ts := c.tokenSource
+	auth := c.auth
+	c.mu.RUnlock()
+
+	if ts != nil {
+		token, err := ts.Token()
 		if err != nil {
 			return err
 		}
 		params.Set("auth", token.AccessToken)
 		return nil
 	}
-	if c.auth != "" {
-		params.Set("auth", c.auth)
+	if auth != "" {
+		params.Set("auth", auth)
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 )
 
 func TestListRevisions(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("fileid") != "20" {
 			http.Error(w, "bad fileid", http.StatusBadRequest)
@@ -30,6 +31,7 @@ func TestListRevisions(t *testing.T) {
 }
 
 func TestListRevisionsByPath(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("path") != "/file.txt" {
 			http.Error(w, "bad path", http.StatusBadRequest)
@@ -50,6 +52,7 @@ func TestListRevisionsByPath(t *testing.T) {
 }
 
 func TestRevertRevision(t *testing.T) {
+	t.Parallel()
 	var gotRevisionID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotRevisionID = r.URL.Query().Get("revisionid")

@@ -2,6 +2,7 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -31,7 +32,7 @@ func (c *Client) Search(ctx context.Context, query string, opts *SearchOpts) ([]
 
 	var resp searchResponse
 	if err := c.do(ctx, "searchfiles", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("search %q: %w", query, err)
 	}
 	return resp.Items, nil
 }

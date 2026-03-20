@@ -23,7 +23,9 @@ func (c *Client) Login(ctx context.Context, username, password string) error {
 		return err
 	}
 
+	c.mu.Lock()
 	c.auth = resp.Auth
+	c.mu.Unlock()
 	return nil
 }
 
@@ -34,7 +36,9 @@ func (c *Client) Logout(ctx context.Context) error {
 		return err
 	}
 
+	c.mu.Lock()
 	c.auth = ""
+	c.mu.Unlock()
 	return nil
 }
 

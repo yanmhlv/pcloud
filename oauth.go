@@ -2,6 +2,7 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"golang.org/x/oauth2"
@@ -36,7 +37,7 @@ func (c *Client) ExchangeCode(ctx context.Context, cfg *oauth2.Config, code stri
 
 	var resp exchangeResponse
 	if err := c.do(ctx, "oauth2_token", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("exchange code: %w", err)
 	}
 
 	return &oauth2.Token{

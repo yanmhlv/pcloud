@@ -2,6 +2,7 @@ package pcloud
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"strconv"
 )
@@ -63,12 +64,20 @@ func (c *Client) createFilePublicLink(ctx context.Context, params url.Values, op
 
 // CreateFilePublicLink creates a public download link for a file by numeric ID.
 func (c *Client) CreateFilePublicLink(ctx context.Context, fileID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
-	return c.createFilePublicLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
+	pl, err := c.createFilePublicLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("create file public link %d: %w", fileID, err)
+	}
+	return pl, nil
 }
 
 // CreateFilePublicLinkByPath creates a public download link for a file by path.
 func (c *Client) CreateFilePublicLinkByPath(ctx context.Context, path string, opts *PublicLinkOpts) (*PublicLink, error) {
-	return c.createFilePublicLink(ctx, url.Values{"path": {path}}, opts)
+	pl, err := c.createFilePublicLink(ctx, url.Values{"path": {path}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("create file public link %s: %w", path, err)
+	}
+	return pl, nil
 }
 
 func (c *Client) createFolderPublicLink(ctx context.Context, params url.Values, opts *PublicLinkOpts) (*PublicLink, error) {
@@ -82,19 +91,27 @@ func (c *Client) createFolderPublicLink(ctx context.Context, params url.Values, 
 
 // CreateFolderPublicLink creates a public link for a folder by numeric ID.
 func (c *Client) CreateFolderPublicLink(ctx context.Context, folderID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
-	return c.createFolderPublicLink(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
+	pl, err := c.createFolderPublicLink(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("create folder public link %d: %w", folderID, err)
+	}
+	return pl, nil
 }
 
 // CreateFolderPublicLinkByPath creates a public link for a folder by path.
 func (c *Client) CreateFolderPublicLinkByPath(ctx context.Context, path string, opts *PublicLinkOpts) (*PublicLink, error) {
-	return c.createFolderPublicLink(ctx, url.Values{"path": {path}}, opts)
+	pl, err := c.createFolderPublicLink(ctx, url.Values{"path": {path}}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("create folder public link %s: %w", path, err)
+	}
+	return pl, nil
 }
 
 // ListPublicLinks returns all public links created by the authenticated user.
 func (c *Client) ListPublicLinks(ctx context.Context) ([]PublicLink, error) {
 	var resp listPublicLinksResponse
 	if err := c.do(ctx, "listpublinks", url.Values{}, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("list public links: %w", err)
 	}
 	return resp.PubLinks, nil
 }
@@ -106,7 +123,10 @@ func (c *Client) DeletePublicLink(ctx context.Context, linkID uint64) error {
 	}
 
 	var resp Error
-	return c.do(ctx, "deletepublink", params, &resp)
+	if err := c.do(ctx, "deletepublink", params, &resp); err != nil {
+		return fmt.Errorf("delete public link %d: %w", linkID, err)
+	}
+	return nil
 }
 
 // ChangePublicLink updates settings on an existing public link.
@@ -118,7 +138,7 @@ func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *Publ
 
 	var resp PublicLink
 	if err := c.do(ctx, "changepublink", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("change public link %d: %w", linkID, err)
 	}
 	return &resp, nil
 }
@@ -131,7 +151,7 @@ func (c *Client) GetPublicLinkInfo(ctx context.Context, code string) (*PublicLin
 
 	var resp PublicLink
 	if err := c.do(ctx, "showpublink", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get public link info %s: %w", code, err)
 	}
 	return &resp, nil
 }

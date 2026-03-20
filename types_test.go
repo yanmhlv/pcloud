@@ -58,7 +58,7 @@ func TestErrorErr(t *testing.T) {
 		t.Fatal("result=0 should return nil error")
 	}
 
-	e = &Error{Result: 2005, Message: "not found"}
+	e = &Error{Result: ErrNotFound, Message: "not found"}
 	if e.Err() == nil {
 		t.Fatal("result!=0 should return error")
 	}
@@ -68,7 +68,7 @@ func TestErrorErr(t *testing.T) {
 }
 
 func TestErrorErrNoMessage(t *testing.T) {
-	e := &Error{Result: 1000}
+	e := &Error{Result: ErrAuthRequired}
 	if e.Error() != "pcloud error 1000" {
 		t.Fatalf("unexpected error string: %s", e.Error())
 	}

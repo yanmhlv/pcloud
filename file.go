@@ -161,7 +161,11 @@ func (c *Client) Upload(ctx context.Context, folderID uint64, filename string, c
 		"folderid": {strconv.FormatUint(folderID, 10)},
 		"filename": {filename},
 	}
-	return c.upload(ctx, params, filename, content, opts)
+	m, err := c.upload(ctx, params, filename, content, opts)
+	if err != nil {
+		return nil, fmt.Errorf("upload to folder %d: %w", folderID, err)
+	}
+	return m, nil
 }
 
 // UploadByPath uploads content to the folder at path as filename.
@@ -170,7 +174,11 @@ func (c *Client) UploadByPath(ctx context.Context, path, filename string, conten
 		"path":     {path},
 		"filename": {filename},
 	}
-	return c.upload(ctx, params, filename, content, opts)
+	m, err := c.upload(ctx, params, filename, content, opts)
+	if err != nil {
+		return nil, fmt.Errorf("upload to %s: %w", path, err)
+	}
+	return m, nil
 }
 
 // Download downloads a file by ID and returns the response body.
@@ -178,9 +186,13 @@ func (c *Client) UploadByPath(ctx context.Context, path, filename string, conten
 func (c *Client) Download(ctx context.Context, fileID uint64, opts *DownloadOpts) (io.ReadCloser, error) {
 	link, err := c.GetFileLink(ctx, fileID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("download file %d: %w", fileID, err)
 	}
-	return c.downloadFromLink(ctx, link, opts)
+	rc, err := c.downloadFromLink(ctx, link, opts)
+	if err != nil {
+		return nil, fmt.Errorf("download file %d: %w", fileID, err)
+	}
+	return rc, nil
 }
 
 // DownloadByPath downloads a file by path and returns the response body.
@@ -188,9 +200,13 @@ func (c *Client) Download(ctx context.Context, fileID uint64, opts *DownloadOpts
 func (c *Client) DownloadByPath(ctx context.Context, path string, opts *DownloadOpts) (io.ReadCloser, error) {
 	link, err := c.GetFileLinkByPath(ctx, path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("download %s: %w", path, err)
 	}
-	return c.downloadFromLink(ctx, link, opts)
+	rc, err := c.downloadFromLink(ctx, link, opts)
+	if err != nil {
+		return nil, fmt.Errorf("download %s: %w", path, err)
+	}
+	return rc, nil
 }
 
 func (c *Client) downloadFromLink(ctx context.Context, link *FileLink, opts *DownloadOpts) (io.ReadCloser, error) {
@@ -228,12 +244,20 @@ func (c *Client) stat(ctx context.Context, params url.Values) (*Metadata, error)
 
 // Stat returns metadata for a file identified by numeric ID.
 func (c *Client) Stat(ctx context.Context, fileID uint64) (*Metadata, error) {
-	return c.stat(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
+	m, err := c.stat(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
+	if err != nil {
+		return nil, fmt.Errorf("stat file %d: %w", fileID, err)
+	}
+	return m, nil
 }
 
 // StatByPath returns metadata for a file identified by path.
 func (c *Client) StatByPath(ctx context.Context, path string) (*Metadata, error) {
-	return c.stat(ctx, url.Values{"path": {path}})
+	m, err := c.stat(ctx, url.Values{"path": {path}})
+	if err != nil {
+		return nil, fmt.Errorf("stat %s: %w", path, err)
+	}
+	return m, nil
 }
 
 func (c *Client) deleteFile(ctx context.Context, params url.Values) error {
@@ -243,12 +267,18 @@ func (c *Client) deleteFile(ctx context.Context, params url.Values) error {
 
 // DeleteFile deletes a file by numeric ID.
 func (c *Client) DeleteFile(ctx context.Context, fileID uint64) error {
-	return c.deleteFile(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
+	if err := c.deleteFile(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}); err != nil {
+		return fmt.Errorf("delete file %d: %w", fileID, err)
+	}
+	return nil
 }
 
 // DeleteFileByPath deletes a file by path.
 func (c *Client) DeleteFileByPath(ctx context.Context, path string) error {
-	return c.deleteFile(ctx, url.Values{"path": {path}})
+	if err := c.deleteFile(ctx, url.Values{"path": {path}}); err != nil {
+		return fmt.Errorf("delete %s: %w", path, err)
+	}
+	return nil
 }
 
 // RenameFile renames a file in-place.
@@ -260,7 +290,7 @@ func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) 
 
 	var resp metadataResponse
 	if err := c.do(ctx, "renamefile", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("rename file %d: %w", fileID, err)
 	}
 	return &resp.Metadata, nil
 }
@@ -275,7 +305,7 @@ func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64, name s
 
 	var resp metadataResponse
 	if err := c.do(ctx, "renamefile", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("move file %d: %w", fileID, err)
 	}
 	return &resp.Metadata, nil
 }
@@ -289,7 +319,7 @@ func (c *Client) CopyFile(ctx context.Context, fileID, toFolderID uint64) (*Meta
 
 	var resp metadataResponse
 	if err := c.do(ctx, "copyfile", params, &resp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("copy file %d: %w", fileID, err)
 	}
 	return &resp.Metadata, nil
 }

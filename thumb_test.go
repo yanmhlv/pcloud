@@ -7,6 +7,7 @@ import (
 )
 
 func TestGetThumbnail(t *testing.T) {
+	t.Parallel()
 	var gotSize, gotFileID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotSize = r.URL.Query().Get("size")
@@ -33,6 +34,7 @@ func TestGetThumbnail(t *testing.T) {
 }
 
 func TestGetThumbnailByPath(t *testing.T) {
+	t.Parallel()
 	var gotPath string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Query().Get("path")
@@ -52,6 +54,7 @@ func TestGetThumbnailByPath(t *testing.T) {
 }
 
 func TestGetThumbnailWithOpts(t *testing.T) {
+	t.Parallel()
 	var gotCrop, gotType string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotCrop = r.URL.Query().Get("crop")
@@ -72,6 +75,7 @@ func TestGetThumbnailWithOpts(t *testing.T) {
 }
 
 func TestGetThumbnailInvalidSize(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(FileLink{})
 	})

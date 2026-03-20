@@ -8,16 +8,18 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Endpoint is the OAuth2 endpoint for US-region pCloud accounts.
-var Endpoint = oauth2.Endpoint{
-	AuthURL:  BaseURLUS + "/oauth2_authorize",
-	TokenURL: BaseURLUS + "/oauth2_token",
+func Endpoint() oauth2.Endpoint {
+	return oauth2.Endpoint{
+		AuthURL:  BaseURLUS + "/oauth2_authorize",
+		TokenURL: BaseURLUS + "/oauth2_token",
+	}
 }
 
-// EndpointEU is the OAuth2 endpoint for EU-region pCloud accounts.
-var EndpointEU = oauth2.Endpoint{
-	AuthURL:  BaseURLEU + "/oauth2_authorize",
-	TokenURL: BaseURLEU + "/oauth2_token",
+func EndpointEU() oauth2.Endpoint {
+	return oauth2.Endpoint{
+		AuthURL:  BaseURLEU + "/oauth2_authorize",
+		TokenURL: BaseURLEU + "/oauth2_token",
+	}
 }
 
 type exchangeResponse struct {

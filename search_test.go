@@ -7,6 +7,7 @@ import (
 )
 
 func TestSearch(t *testing.T) {
+	t.Parallel()
 	var gotQuery string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotQuery = r.URL.Query().Get("query")
@@ -31,6 +32,7 @@ func TestSearch(t *testing.T) {
 }
 
 func TestSearchWithOpts(t *testing.T) {
+	t.Parallel()
 	var gotFolderID, gotRecursive string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotFolderID = r.URL.Query().Get("folderid")
@@ -48,6 +50,7 @@ func TestSearchWithOpts(t *testing.T) {
 }
 
 func TestSearchAPIError(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(searchResponse{Error: Error{Result: 2003, Message: "access denied"}})
 	})

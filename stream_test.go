@@ -7,6 +7,7 @@ import (
 )
 
 func TestGetFileLink(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("fileid") != "10" {
 			http.Error(w, "bad fileid", http.StatusBadRequest)
@@ -29,6 +30,7 @@ func TestGetFileLink(t *testing.T) {
 }
 
 func TestGetFileLinkByPath(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("path") != "/docs/report.pdf" {
 			http.Error(w, "bad path", http.StatusBadRequest)
@@ -50,6 +52,7 @@ func TestGetFileLinkByPath(t *testing.T) {
 }
 
 func TestGetFileLinkOpts(t *testing.T) {
+	t.Parallel()
 	var gotForceDownload string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotForceDownload = r.URL.Query().Get("forcedownload")
@@ -66,6 +69,7 @@ func TestGetFileLinkOpts(t *testing.T) {
 }
 
 func TestGetFileLinkAPIError(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(FileLink{Error: Error{Result: 2005, Message: "not found"}})
 	})

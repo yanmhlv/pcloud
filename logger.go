@@ -5,6 +5,8 @@ import (
 	"log/slog"
 )
 
+var _ slog.Handler = noopHandler{}
+
 type noopHandler struct{}
 
 func (noopHandler) Enabled(context.Context, slog.Level) bool  { return false }

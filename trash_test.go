@@ -7,6 +7,7 @@ import (
 )
 
 func TestListTrash(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/trash_list" {
 			http.Error(w, "wrong endpoint", http.StatusNotFound)
@@ -33,6 +34,7 @@ func TestListTrash(t *testing.T) {
 }
 
 func TestRestoreFromTrash(t *testing.T) {
+	t.Parallel()
 	var gotFileID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotFileID = r.URL.Query().Get("fileid")
@@ -54,6 +56,7 @@ func TestRestoreFromTrash(t *testing.T) {
 }
 
 func TestRestoreFromTrashByPath(t *testing.T) {
+	t.Parallel()
 	var gotPath string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Query().Get("path")
@@ -72,6 +75,7 @@ func TestRestoreFromTrashByPath(t *testing.T) {
 }
 
 func TestEmptyTrash(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/trash_clear" {
 			http.Error(w, "wrong endpoint", http.StatusNotFound)

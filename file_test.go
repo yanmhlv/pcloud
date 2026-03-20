@@ -11,6 +11,7 @@ import (
 )
 
 func TestStat(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("fileid") != "123" {
 			http.Error(w, "bad fileid", http.StatusBadRequest)
@@ -31,6 +32,7 @@ func TestStat(t *testing.T) {
 }
 
 func TestStatByPath(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("path") != "/photo.jpg" {
 			http.Error(w, "bad path", http.StatusBadRequest)
@@ -51,6 +53,7 @@ func TestStatByPath(t *testing.T) {
 }
 
 func TestDeleteFile(t *testing.T) {
+	t.Parallel()
 	var gotFileID string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotFileID = r.URL.Query().Get("fileid")
@@ -66,6 +69,7 @@ func TestDeleteFile(t *testing.T) {
 }
 
 func TestDeleteFileByPath(t *testing.T) {
+	t.Parallel()
 	var gotPath string
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Query().Get("path")
@@ -81,6 +85,7 @@ func TestDeleteFileByPath(t *testing.T) {
 }
 
 func TestUpload(t *testing.T) {
+	t.Parallel()
 	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(uploadResponse{
 			Metadata: []Metadata{{Name: "hello.txt", FileID: 77}},
@@ -98,6 +103,7 @@ func TestUpload(t *testing.T) {
 }
 
 func TestProgressReaderCumulative(t *testing.T) {
+	t.Parallel()
 	var calls []int64
 	pr := &progressReader{
 		rc:    io.NopCloser(strings.NewReader("0123456789")),

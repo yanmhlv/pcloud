@@ -7,6 +7,7 @@ import (
 )
 
 func TestIsErrorCodeMatch(t *testing.T) {
+	t.Parallel()
 	err := &Error{Result: ErrNotFound, Message: "not found"}
 	if !IsErrorCode(err, ErrNotFound) {
 		t.Fatal("expected match for ErrNotFound")
@@ -14,6 +15,7 @@ func TestIsErrorCodeMatch(t *testing.T) {
 }
 
 func TestIsErrorCodeNoMatch(t *testing.T) {
+	t.Parallel()
 	err := &Error{Result: ErrNotFound, Message: "not found"}
 	if IsErrorCode(err, ErrAccessDenied) {
 		t.Fatal("expected no match for ErrAccessDenied")
@@ -21,6 +23,7 @@ func TestIsErrorCodeNoMatch(t *testing.T) {
 }
 
 func TestIsErrorCodeNonPcloud(t *testing.T) {
+	t.Parallel()
 	err := errors.New("some other error")
 	if IsErrorCode(err, ErrNotFound) {
 		t.Fatal("expected false for non-pcloud error")
@@ -28,6 +31,7 @@ func TestIsErrorCodeNonPcloud(t *testing.T) {
 }
 
 func TestIsErrorCodeWrapped(t *testing.T) {
+	t.Parallel()
 	inner := &Error{Result: ErrNotFound, Message: "not found"}
 	wrapped := fmt.Errorf("operation failed: %w", inner)
 	if !IsErrorCode(wrapped, ErrNotFound) {
@@ -36,6 +40,7 @@ func TestIsErrorCodeWrapped(t *testing.T) {
 }
 
 func TestErrorWrappingUnwrap(t *testing.T) {
+	t.Parallel()
 	inner := &Error{Result: ErrNotFound, Message: "File not found"}
 	wrapped := fmt.Errorf("stat file 123: %w", inner)
 	if !IsErrorCode(wrapped, ErrNotFound) {

@@ -17,7 +17,6 @@ type SharePermissions struct {
 
 // Share represents a folder sharing record, including both active shares and pending requests.
 type Share struct {
-	Error
 	ShareID         uint64 `json:"shareid"`
 	ShareRequestID  uint64 `json:"sharerequestid"`
 	FolderID        uint64 `json:"folderid"`
@@ -38,6 +37,11 @@ type Share struct {
 // ShareOpts controls optional parameters for sharing a folder.
 type ShareOpts struct {
 	Note string
+}
+
+type shareResponse struct {
+	Error
+	Share
 }
 
 type listSharesResponse struct {
@@ -92,11 +96,11 @@ func (c *Client) shareFolder(ctx context.Context, params url.Values, perms Share
 		params.Set("message", opts.Note)
 	}
 
-	var resp Share
+	var resp shareResponse
 	if err := c.do(ctx, "sharefolder", params, &resp); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &resp.Share, nil
 }
 
 // ListShares returns active shares and pending share requests for the authenticated user.

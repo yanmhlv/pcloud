@@ -10,7 +10,6 @@ import (
 
 // PublicLink represents a shareable public link to a file or folder.
 type PublicLink struct {
-	Error
 	LinkID    uint64   `json:"linkid"`
 	Code      string   `json:"code"`
 	Link      string   `json:"link"`
@@ -54,13 +53,18 @@ func applyPublicLinkOpts(params url.Values, opts *PublicLinkOpts) {
 	}
 }
 
+type publicLinkResponse struct {
+	Error
+	PublicLink
+}
+
 func (c *Client) createFilePublicLink(ctx context.Context, params url.Values, opts *PublicLinkOpts) (*PublicLink, error) {
 	applyPublicLinkOpts(params, opts)
-	var resp PublicLink
+	var resp publicLinkResponse
 	if err := c.do(ctx, "getfilepublink", params, &resp); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &resp.PublicLink, nil
 }
 
 // CreateFilePublicLink creates a public download link for a file by numeric ID.
@@ -83,11 +87,11 @@ func (c *Client) CreateFilePublicLinkByPath(ctx context.Context, path string, op
 
 func (c *Client) createFolderPublicLink(ctx context.Context, params url.Values, opts *PublicLinkOpts) (*PublicLink, error) {
 	applyPublicLinkOpts(params, opts)
-	var resp PublicLink
+	var resp publicLinkResponse
 	if err := c.do(ctx, "getfolderpublink", params, &resp); err != nil {
 		return nil, err
 	}
-	return &resp, nil
+	return &resp.PublicLink, nil
 }
 
 // CreateFolderPublicLink creates a public link for a folder by numeric ID.
@@ -137,11 +141,11 @@ func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *Publ
 	}
 	applyPublicLinkOpts(params, opts)
 
-	var resp PublicLink
+	var resp publicLinkResponse
 	if err := c.do(ctx, "changepublink", params, &resp); err != nil {
 		return nil, fmt.Errorf("change public link %d: %w", linkID, err)
 	}
-	return &resp, nil
+	return &resp.PublicLink, nil
 }
 
 // GetPublicLinkInfo returns details about a public link identified by its short code.
@@ -150,9 +154,9 @@ func (c *Client) GetPublicLinkInfo(ctx context.Context, code string) (*PublicLin
 		"code": {code},
 	}
 
-	var resp PublicLink
+	var resp publicLinkResponse
 	if err := c.do(ctx, "showpublink", params, &resp); err != nil {
 		return nil, fmt.Errorf("get public link info %s: %w", code, err)
 	}
-	return &resp, nil
+	return &resp.PublicLink, nil
 }

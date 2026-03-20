@@ -43,9 +43,6 @@ func (e *Error) Error() string {
 }
 
 func IsErrorCode(err error, code ErrorCode) bool {
-	var e *Error
-	if errors.As(err, &e) {
-		return e.Result == code
-	}
-	return false
+	e, ok := errors.AsType[*Error](err)
+	return ok && e.Result == code
 }

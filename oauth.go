@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func Endpoint() oauth2.Endpoint {
+func EndpointUS() oauth2.Endpoint {
 	return oauth2.Endpoint{
 		AuthURL:  BaseURLUS + "/oauth2_authorize",
 		TokenURL: BaseURLUS + "/oauth2_token",

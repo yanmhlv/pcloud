@@ -46,27 +46,18 @@ type listSharesResponse struct {
 	Requests []Share `json:"requests"`
 }
 
+func boolParam(b bool) string {
+	if b {
+		return "1"
+	}
+	return "0"
+}
+
 func applyPermissions(params url.Values, perms SharePermissions) {
-	if perms.CanRead {
-		params.Set("canread", "1")
-	} else {
-		params.Set("canread", "0")
-	}
-	if perms.CanCreate {
-		params.Set("cancreate", "1")
-	} else {
-		params.Set("cancreate", "0")
-	}
-	if perms.CanModify {
-		params.Set("canmodify", "1")
-	} else {
-		params.Set("canmodify", "0")
-	}
-	if perms.CanDelete {
-		params.Set("candelete", "1")
-	} else {
-		params.Set("candelete", "0")
-	}
+	params.Set("canread", boolParam(perms.CanRead))
+	params.Set("cancreate", boolParam(perms.CanCreate))
+	params.Set("canmodify", boolParam(perms.CanModify))
+	params.Set("candelete", boolParam(perms.CanDelete))
 }
 
 // ShareFolder shares a folder identified by numeric ID with another user by email.

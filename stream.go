@@ -7,7 +7,6 @@ import (
 	"strconv"
 )
 
-// FileLinkOpts controls optional parameters for file link requests.
 type FileLinkOpts struct {
 	ForceDownload bool
 	ContentType   string
@@ -71,7 +70,6 @@ func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint strin
 	return &resp.FileLink, nil
 }
 
-// GetVideoLink returns a streaming URL for a video file.
 func (c *Client) GetVideoLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	fl, err := c.getMediaLink(ctx, fileID, "getvideolink")
 	if err != nil {
@@ -80,7 +78,6 @@ func (c *Client) GetVideoLink(ctx context.Context, fileID uint64) (*FileLink, er
 	return fl, nil
 }
 
-// GetAudioLink returns a streaming URL for an audio file.
 func (c *Client) GetAudioLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	fl, err := c.getMediaLink(ctx, fileID, "getaudiolink")
 	if err != nil {
@@ -89,7 +86,6 @@ func (c *Client) GetAudioLink(ctx context.Context, fileID uint64) (*FileLink, er
 	return fl, nil
 }
 
-// GetHLSLink returns an HLS streaming URL for a video file.
 func (c *Client) GetHLSLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	fl, err := c.getMediaLink(ctx, fileID, "gethlslink")
 	if err != nil {

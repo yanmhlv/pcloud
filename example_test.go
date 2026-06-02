@@ -126,7 +126,7 @@ func ExampleClient_Walk_findLargeFiles() {
 	c.Login(ctx, "user@example.com", "password")
 	defer c.Logout(ctx)
 
-	const maxSize = 100 * 1024 * 1024 // 100MB
+	const maxSize = 100 * 1024 * 1024
 	for item, err := range c.Walk(ctx, 0) {
 		if err != nil {
 			log.Fatal(err)

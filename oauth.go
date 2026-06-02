@@ -29,7 +29,6 @@ type exchangeResponse struct {
 	UserID      uint64 `json:"userid"`
 }
 
-// ExchangeCode exchanges an OAuth2 authorization code for an access token.
 func (c *Client) ExchangeCode(ctx context.Context, cfg *oauth2.Config, code string) (*oauth2.Token, error) {
 	params := url.Values{
 		"client_id":     {cfg.ClientID},

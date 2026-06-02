@@ -7,7 +7,6 @@ import (
 	"strconv"
 )
 
-// TrashItem describes a file or folder in the pCloud trash.
 type TrashItem struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
@@ -24,7 +23,6 @@ type trashListResponse struct {
 	Items []TrashItem `json:"items"`
 }
 
-// ListTrash returns all files and folders currently in the trash.
 func (c *Client) ListTrash(ctx context.Context) ([]TrashItem, error) {
 	var resp trashListResponse
 	if err := c.do(ctx, "trash_list", url.Values{}, &resp); err != nil {
@@ -41,7 +39,6 @@ func (c *Client) restoreFromTrash(ctx context.Context, params url.Values) (*Meta
 	return &resp.Metadata, nil
 }
 
-// RestoreFromTrash restores a trashed file to its original location by file ID.
 func (c *Client) RestoreFromTrash(ctx context.Context, fileID uint64) (*Metadata, error) {
 	m, err := c.restoreFromTrash(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
 	if err != nil {
@@ -50,7 +47,6 @@ func (c *Client) RestoreFromTrash(ctx context.Context, fileID uint64) (*Metadata
 	return m, nil
 }
 
-// RestoreFromTrashByPath restores a trashed item by its path.
 func (c *Client) RestoreFromTrashByPath(ctx context.Context, path string) (*Metadata, error) {
 	m, err := c.restoreFromTrash(ctx, url.Values{"path": {path}})
 	if err != nil {
@@ -59,7 +55,6 @@ func (c *Client) RestoreFromTrashByPath(ctx context.Context, path string) (*Meta
 	return m, nil
 }
 
-// EmptyTrash permanently deletes all items in the trash.
 func (c *Client) EmptyTrash(ctx context.Context) error {
 	var resp Error
 	if err := c.do(ctx, "trash_clear", url.Values{}, &resp); err != nil {

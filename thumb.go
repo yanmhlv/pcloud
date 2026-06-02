@@ -7,10 +7,9 @@ import (
 	"strconv"
 )
 
-// ThumbOpts controls optional parameters for thumbnail requests.
 type ThumbOpts struct {
 	Crop bool
-	Type string // "png" or "jpeg"; defaults to "png" if empty
+	Type string
 }
 
 type thumbResponse struct {
@@ -51,8 +50,6 @@ func (c *Client) getThumbnail(ctx context.Context, params url.Values, width, hei
 	return &resp.FileLink, nil
 }
 
-// GetThumbnail returns a thumbnail download link for a file by numeric ID.
-// Width and height must each be between 1 and 2048 pixels.
 func (c *Client) GetThumbnail(ctx context.Context, fileID uint64, width, height int, opts *ThumbOpts) (*FileLink, error) {
 	fl, err := c.getThumbnail(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, width, height, opts)
 	if err != nil {
@@ -61,8 +58,6 @@ func (c *Client) GetThumbnail(ctx context.Context, fileID uint64, width, height 
 	return fl, nil
 }
 
-// GetThumbnailByPath returns a thumbnail download link for a file by path.
-// Width and height must each be between 1 and 2048 pixels.
 func (c *Client) GetThumbnailByPath(ctx context.Context, path string, width, height int, opts *ThumbOpts) (*FileLink, error) {
 	fl, err := c.getThumbnail(ctx, url.Values{"path": {path}}, width, height, opts)
 	if err != nil {

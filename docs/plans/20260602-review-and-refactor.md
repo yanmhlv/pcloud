@@ -96,22 +96,22 @@ Rejected alternatives:
 
 ### Task 4: Strip comments (mechanical, last)
 
-- [ ] Remove all doc/inline comments from source `.go` files: `client.go`,
+- [x] Remove all doc/inline comments from source `.go` files: `client.go`,
       `auth.go`, `file.go`, `folder.go`, `stream.go`, `sharing.go`,
       `publink.go`, `oauth.go`, `errors.go`, `types.go`, `search.go`,
       `favorites.go`, `trash.go`, `thumb.go`, `revision.go`, `logger.go`.
-- [ ] Remove explanatory comments from test files (`*_test.go`), but **keep the
+- [x] Remove explanatory comments from test files (`*_test.go`), but **keep the
       `// Output:` lines in `example_test.go`** so the examples stay runnable and
       verified by `go test` (the one deliberate exception to strip-all).
-- [ ] Delete `doc.go` (CONFIRMED) — the whole file is the package doc comment;
+- [x] Delete `doc.go` (CONFIRMED) — the whole file is the package doc comment;
       this also removes the stale example at `doc.go:43`.
-- [ ] Keep `example_test.go` (CONFIRMED): strip its prose comments, retain
+- [x] Keep `example_test.go` (CONFIRMED): strip its prose comments, retain
       `// Output:` lines, ensure its `ListShares` usage matches the Phase 2 shape.
-- [ ] Re-run `golangci-lint run`; if `revive`'s `exported` / `package-comments`
+- [x] Re-run `golangci-lint run`; if `revive`'s `exported` / `package-comments`
       rules now fire (the config only disables `blank-imports` today), disable
       those two rules in `.golangci.yml` under `linters.settings.revive.rules`.
       (`staticcheck` ST1000/ST1003/ST1020-22 are already disabled.)
-- [ ] **Checkpoint:** `go build ./...`, `go test -race ./...`,
+- [x] **Checkpoint:** `go build ./...`, `go test -race ./...`,
       `golangci-lint run` all pass.
 
 ### Task 5: Verify

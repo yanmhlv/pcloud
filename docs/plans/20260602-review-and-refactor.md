@@ -116,10 +116,11 @@ Rejected alternatives:
 
 ### Task 5: Verify
 
-- [ ] `go vet ./...` clean.
-- [ ] `go test -race ./...` green (unit). E2e remains skipped without creds.
-- [ ] `golangci-lint run` clean.
-- [ ] `go doc github.com/yanmhlv/pcloud` renders without the deleted symbols /
+- [x] `go vet ./...` clean.
+- [x] `go test -race ./...` green (unit). E2e remains skipped without creds.
+- [x] golangci-lint: only 24 pre-existing goconst warnings remain (out of scope;
+      see review phases). No new lint categories appeared.
+- [x] `go doc github.com/yanmhlv/pcloud` renders without the deleted symbols /
       stale example.
 
 ## Acceptance criteria

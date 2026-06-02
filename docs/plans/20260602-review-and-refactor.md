@@ -86,13 +86,13 @@ Rejected alternatives:
 
 ### Task 3: Internal polish (behavior-preserving)
 
-- [ ] Add `const rateLimiterBurst = 10` in `client.go`; use it in `NewClient`
+- [x] Add `const rateLimiterBurst = 10` in `client.go`; use it in `NewClient`
       and `SetRateLimit` instead of the repeated literal.
-- [ ] Simplify the upload goroutine (`file.go:121-157`): collapse the three
+- [x] Simplify the upload goroutine (`file.go:121-157`): collapse the three
       `pw.CloseWithError(err); errCh <- err; return` branches into a single
       inner func returning `error`, then `pw.CloseWithError(err)` once
       (`nil` → clean EOF) and one `errCh <- err`. Behavior identical.
-- [ ] **Checkpoint:** `go test -race ./...` and `golangci-lint run` pass.
+- [x] **Checkpoint:** `go test -race ./...` and `golangci-lint run` pass.
 
 ### Task 4: Strip comments (mechanical, last)
 

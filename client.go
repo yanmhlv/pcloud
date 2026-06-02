@@ -24,6 +24,8 @@ const (
 	MinRPM = 100.0
 )
 
+const rateLimiterBurst = 10
+
 // Client is a pCloud API client. Use NewClient to create one.
 // All methods are safe for concurrent use.
 type Client struct {
@@ -43,7 +45,7 @@ func NewClient(baseURL string) *Client {
 		baseURL:    cmp.Or(baseURL, BaseURLUS),
 		httpClient: &http.Client{},
 		logger:     newNoopLogger(),
-		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), 10),
+		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), rateLimiterBurst),
 	}
 }
 
@@ -69,7 +71,7 @@ func (c *Client) SetRateLimit(rpm float64) error {
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), 10)
+	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), rateLimiterBurst)
 	return nil
 }
 

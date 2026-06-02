@@ -123,23 +123,18 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 	errCh := make(chan error, 1)
 	go func() {
 		defer close(errCh)
-		part, err := writer.CreateFormFile("file", filename)
-		if err != nil {
-			_ = pw.CloseWithError(err)
-			errCh <- err
-			return
-		}
-		if _, err := io.Copy(part, readContent); err != nil {
-			_ = pw.CloseWithError(err)
-			errCh <- err
-			return
-		}
-		if err := writer.Close(); err != nil {
-			_ = pw.CloseWithError(err)
-			errCh <- err
-			return
-		}
-		_ = pw.Close()
+		err := func() error {
+			part, err := writer.CreateFormFile("file", filename)
+			if err != nil {
+				return err
+			}
+			if _, err := io.Copy(part, readContent); err != nil {
+				return err
+			}
+			return writer.Close()
+		}()
+		_ = pw.CloseWithError(err)
+		errCh <- err
 	}()
 
 	var resp uploadResponse

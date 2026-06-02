@@ -52,14 +52,14 @@ func TestListShares(t *testing.T) {
 		})
 	})
 
-	shares, requests, err := c.ListShares(t.Context())
+	shares, err := c.ListShares(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(shares) != 1 || shares[0].ShareID != 1 {
-		t.Fatalf("unexpected shares: %v", shares)
+	if len(shares.Active) != 1 || shares.Active[0].ShareID != 1 {
+		t.Fatalf("unexpected active shares: %v", shares.Active)
 	}
-	if len(requests) != 1 || requests[0].ShareID != 2 {
-		t.Fatalf("unexpected requests: %v", requests)
+	if len(shares.Requests) != 1 || shares.Requests[0].ShareID != 2 {
+		t.Fatalf("unexpected requests: %v", shares.Requests)
 	}
 }

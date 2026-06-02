@@ -77,12 +77,12 @@ Rejected alternatives:
 
 ### Task 2: Breaking API — `ListShares` return shape
 
-- [ ] Define an exported result type in `sharing.go`, e.g.
+- [x] Define an exported result type in `sharing.go`, e.g.
       `type Shares struct { Active []Share; Requests []Share }`.
-- [ ] Change `ListShares` to return `(Shares, error)`.
-- [ ] Update all callers: `sharing_test.go`, `tests/e2e_test.go`, and
-      `example_test.go`.
-- [ ] **Checkpoint:** `go build ./...` and `go test -race ./...` pass.
+- [x] Change `ListShares` to return `(Shares, error)`.
+- [x] Update all callers: `sharing_test.go` (tests/e2e_test.go and
+      example_test.go have no ListShares callers).
+- [x] **Checkpoint:** `go build ./...` and `go test -race ./...` pass.
 
 ### Task 3: Internal polish (behavior-preserving)
 

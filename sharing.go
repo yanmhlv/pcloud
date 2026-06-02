@@ -103,13 +103,18 @@ func (c *Client) shareFolder(ctx context.Context, params url.Values, perms Share
 	return &resp.Share, nil
 }
 
+type Shares struct {
+	Active   []Share
+	Requests []Share
+}
+
 // ListShares returns active shares and pending share requests for the authenticated user.
-func (c *Client) ListShares(ctx context.Context) ([]Share, []Share, error) {
+func (c *Client) ListShares(ctx context.Context) (Shares, error) {
 	var resp listSharesResponse
 	if err := c.do(ctx, "listshares", url.Values{}, &resp); err != nil {
-		return nil, nil, fmt.Errorf("list shares: %w", err)
+		return Shares{}, fmt.Errorf("list shares: %w", err)
 	}
-	return resp.Shares, resp.Requests, nil
+	return Shares{Active: resp.Shares, Requests: resp.Requests}, nil
 }
 
 // AcceptShare accepts an incoming share request by its ID.

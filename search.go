@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
-// SearchOpts controls optional parameters for file searches.
 type SearchOpts struct {
 	FolderID  uint64
 	Recursive bool
@@ -18,12 +16,11 @@ type searchResponse struct {
 	Items []Metadata `json:"items"`
 }
 
-// Search searches for files matching query. Pass nil opts for a global search.
 func (c *Client) Search(ctx context.Context, query string, opts *SearchOpts) ([]Metadata, error) {
 	params := url.Values{"query": {query}}
 	if opts != nil {
 		if opts.FolderID > 0 {
-			params.Set("folderid", strconv.FormatUint(opts.FolderID, 10))
+			params.Set(paramFolderID, formatUint(opts.FolderID))
 		}
 		if opts.Recursive {
 			params.Set("recursive", "1")

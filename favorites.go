@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
 type favoritesResponse struct {
@@ -12,7 +11,6 @@ type favoritesResponse struct {
 	Items []Metadata `json:"items"`
 }
 
-// ListFavorites returns all files and folders marked as favorites.
 func (c *Client) ListFavorites(ctx context.Context) ([]Metadata, error) {
 	var resp favoritesResponse
 	if err := c.do(ctx, "getfavourites", url.Values{}, &resp); err != nil {
@@ -26,17 +24,15 @@ func (c *Client) addFavorite(ctx context.Context, params url.Values) error {
 	return c.do(ctx, "addfavourite", params, &resp)
 }
 
-// AddFavorite marks a file as a favorite by numeric ID.
 func (c *Client) AddFavorite(ctx context.Context, fileID uint64) error {
-	if err := c.addFavorite(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}); err != nil {
+	if err := c.addFavorite(ctx, url.Values{paramFileID: {formatUint(fileID)}}); err != nil {
 		return fmt.Errorf("add favorite %d: %w", fileID, err)
 	}
 	return nil
 }
 
-// AddFavoriteByPath marks a file as a favorite by path.
 func (c *Client) AddFavoriteByPath(ctx context.Context, path string) error {
-	if err := c.addFavorite(ctx, url.Values{"path": {path}}); err != nil {
+	if err := c.addFavorite(ctx, url.Values{paramPath: {path}}); err != nil {
 		return fmt.Errorf("add favorite %s: %w", path, err)
 	}
 	return nil
@@ -47,17 +43,15 @@ func (c *Client) removeFavorite(ctx context.Context, params url.Values) error {
 	return c.do(ctx, "removefavourite", params, &resp)
 }
 
-// RemoveFavorite removes a file from favorites by numeric ID.
 func (c *Client) RemoveFavorite(ctx context.Context, fileID uint64) error {
-	if err := c.removeFavorite(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}); err != nil {
+	if err := c.removeFavorite(ctx, url.Values{paramFileID: {formatUint(fileID)}}); err != nil {
 		return fmt.Errorf("remove favorite %d: %w", fileID, err)
 	}
 	return nil
 }
 
-// RemoveFavoriteByPath removes a file from favorites by path.
 func (c *Client) RemoveFavoriteByPath(ctx context.Context, path string) error {
-	if err := c.removeFavorite(ctx, url.Values{"path": {path}}); err != nil {
+	if err := c.removeFavorite(ctx, url.Values{paramPath: {path}}); err != nil {
 		return fmt.Errorf("remove favorite %s: %w", path, err)
 	}
 	return nil

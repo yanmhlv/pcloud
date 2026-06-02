@@ -16,16 +16,15 @@ import (
 )
 
 const (
-	// BaseURLUS is the pCloud API endpoint for US-region accounts.
 	BaseURLUS = "https://api.pcloud.com"
-	// BaseURLEU is the pCloud API endpoint for EU-region accounts.
+
 	BaseURLEU = "https://eapi.pcloud.com"
-	// MinRPM is the minimum allowed rate limit in requests per minute.
+
 	MinRPM = 100.0
 )
 
-// Client is a pCloud API client. Use NewClient to create one.
-// All methods are safe for concurrent use.
+const rateLimiterBurst = 10
+
 type Client struct {
 	mu          sync.RWMutex
 	baseURL     string
@@ -36,45 +35,37 @@ type Client struct {
 	limiter     *rate.Limiter
 }
 
-// NewClient creates a new Client for the given base URL.
-// Pass BaseURLUS or BaseURLEU; an empty string defaults to BaseURLUS.
 func NewClient(baseURL string) *Client {
 	return &Client{
 		baseURL:    cmp.Or(baseURL, BaseURLUS),
 		httpClient: &http.Client{},
 		logger:     newNoopLogger(),
-		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), 10),
+		limiter:    rate.NewLimiter(rate.Limit(MinRPM/60.0), rateLimiterBurst),
 	}
 }
 
-// SetHTTPClient replaces the default HTTP client.
 func (c *Client) SetHTTPClient(client *http.Client) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.httpClient = client
 }
 
-// SetLogger attaches a structured logger for request diagnostics.
 func (c *Client) SetLogger(logger *slog.Logger) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.logger = logger
 }
 
-// SetRateLimit configures the maximum requests per minute.
-// Returns an error if rpm is below MinRPM.
 func (c *Client) SetRateLimit(rpm float64) error {
 	if rpm < MinRPM {
 		return fmt.Errorf("rate limit %.1f RPM is below minimum %.1f RPM", rpm, MinRPM)
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), 10)
+	c.limiter = rate.NewLimiter(rate.Limit(rpm/60.0), rateLimiterBurst)
 	return nil
 }
 
-// SetTokenSource configures OAuth2 token-based authentication.
-// This takes precedence over username/password auth set via Login.
 func (c *Client) SetTokenSource(ts oauth2.TokenSource) {
 	c.mu.Lock()
 	defer c.mu.Unlock()

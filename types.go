@@ -12,12 +12,10 @@ type metadataResponse struct {
 	Metadata Metadata `json:"metadata"`
 }
 
-// Time wraps time.Time to handle pCloud's RFC1123Z date format in JSON.
 type Time struct {
 	time.Time
 }
 
-// MarshalJSON encodes Time as RFC1123Z string, or "" for zero value.
 func (t Time) MarshalJSON() ([]byte, error) {
 	if t.IsZero() {
 		return []byte(`""`), nil
@@ -25,7 +23,6 @@ func (t Time) MarshalJSON() ([]byte, error) {
 	return json.Marshal(t.Format(time.RFC1123Z))
 }
 
-// UnmarshalJSON decodes a pCloud RFC1123Z date string into Time.
 func (t *Time) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
@@ -42,10 +39,8 @@ func (t *Time) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// Hash is a file content hash. pCloud may return it as a string or number.
 type Hash string
 
-// UnmarshalJSON decodes a pCloud hash value, which may be a JSON string or number.
 func (h *Hash) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
@@ -60,7 +55,6 @@ func (h *Hash) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("hash: cannot unmarshal %s", string(data))
 }
 
-// Metadata describes a pCloud file or folder.
 type Metadata struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -82,7 +76,6 @@ type Metadata struct {
 	Contents    []Metadata `json:"contents,omitzero"`
 }
 
-// Revision describes a historical version of a pCloud file.
 type Revision struct {
 	RevisionID uint64 `json:"revisionid"`
 	Size       uint64 `json:"size"`
@@ -90,7 +83,6 @@ type Revision struct {
 	Created    Time   `json:"created"`
 }
 
-// UserInfo holds account details returned by the userinfo endpoint.
 type UserInfo struct {
 	UserID         uint64 `json:"userid"`
 	Email          string `json:"email"`
@@ -103,14 +95,12 @@ type UserInfo struct {
 	UsedQuota      uint64 `json:"usedquota"`
 }
 
-// FileLink holds a temporary direct-download URL returned by streaming endpoints.
 type FileLink struct {
 	Path    string   `json:"path"`
 	Expires string   `json:"expires"`
 	Hosts   []string `json:"hosts"`
 }
 
-// URL returns the first available download URL for this FileLink.
 func (f *FileLink) URL() string {
 	if len(f.Hosts) == 0 {
 		return ""

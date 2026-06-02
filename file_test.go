@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -130,4 +131,33 @@ func TestProgressReaderCumulative(t *testing.T) {
 	if calls[1] != 10 {
 		t.Fatalf("second callback: want 10, got %d", calls[1])
 	}
+}
+
+func TestConcurrentDownloadAndSetHTTPClient(t *testing.T) {
+	t.Parallel()
+	c := newTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+		json.NewEncoder(w).Encode(fileLinkResponse{
+			FileLink: FileLink{Path: "/file", Hosts: []string{"127.0.0.1"}},
+		})
+	})
+
+	var wg sync.WaitGroup
+	for range 10 {
+		wg.Go(func() {
+			rc, err := c.Download(t.Context(), 1, nil)
+			if err == nil {
+				rc.Close()
+			}
+		})
+		wg.Go(func() {
+			rc, err := c.DownloadByPath(t.Context(), "/file", nil)
+			if err == nil {
+				rc.Close()
+			}
+		})
+		wg.Go(func() {
+			c.SetHTTPClient(&http.Client{})
+		})
+	}
+	wg.Wait()
 }

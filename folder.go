@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"iter"
 	"net/url"
-	"strconv"
 )
 
-// ListFolderOpts controls optional parameters for listing folder contents.
 type ListFolderOpts struct {
 	Recursive   bool
 	ShowDeleted bool
@@ -43,18 +41,16 @@ func (c *Client) listFolder(ctx context.Context, params url.Values, opts *ListFo
 	return &resp.Metadata, nil
 }
 
-// ListFolder returns the contents of a folder identified by numeric ID.
 func (c *Client) ListFolder(ctx context.Context, folderID uint64, opts *ListFolderOpts) (*Metadata, error) {
-	m, err := c.listFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
+	m, err := c.listFolder(ctx, url.Values{paramFolderID: {formatUint(folderID)}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("list folder %d: %w", folderID, err)
 	}
 	return m, nil
 }
 
-// ListFolderByPath returns the contents of a folder identified by path.
 func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFolderOpts) (*Metadata, error) {
-	m, err := c.listFolder(ctx, url.Values{"path": {path}}, opts)
+	m, err := c.listFolder(ctx, url.Values{paramPath: {path}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("list folder %s: %w", path, err)
 	}
@@ -69,11 +65,10 @@ func (c *Client) createFolder(ctx context.Context, params url.Values) (*Metadata
 	return &resp.Metadata, nil
 }
 
-// CreateFolder creates a new folder inside parentID with the given name.
 func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
 	m, err := c.createFolder(ctx, url.Values{
-		"folderid": {strconv.FormatUint(parentID, 10)},
-		"name":     {name},
+		paramFolderID: {formatUint(parentID)},
+		paramName:     {name},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create folder %d/%s: %w", parentID, name, err)
@@ -81,20 +76,18 @@ func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string)
 	return m, nil
 }
 
-// CreateFolderByPath creates a folder at the given absolute path.
 func (c *Client) CreateFolderByPath(ctx context.Context, path string) (*Metadata, error) {
-	m, err := c.createFolder(ctx, url.Values{"path": {path}})
+	m, err := c.createFolder(ctx, url.Values{paramPath: {path}})
 	if err != nil {
 		return nil, fmt.Errorf("create folder %s: %w", path, err)
 	}
 	return m, nil
 }
 
-// CreateFolderIfNotExists creates a folder only if it does not already exist.
 func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(parentID, 10)},
-		"name":     {name},
+		paramFolderID: {formatUint(parentID)},
+		paramName:     {name},
 	}
 
 	var resp metadataResponse
@@ -104,11 +97,10 @@ func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, n
 	return &resp.Metadata, nil
 }
 
-// RenameFolder renames a folder in-place.
 func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName string) (*Metadata, error) {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-		"toname":   {newName},
+		paramFolderID: {formatUint(folderID)},
+		paramToName:   {newName},
 	}
 
 	var resp metadataResponse
@@ -118,12 +110,11 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 	return &resp.Metadata, nil
 }
 
-// MoveFolder moves a folder to a different parent and optionally renames it.
 func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, name string) (*Metadata, error) {
 	params := url.Values{
-		"folderid":   {strconv.FormatUint(folderID, 10)},
-		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
-		"toname":     {name},
+		paramFolderID:   {formatUint(folderID)},
+		paramToFolderID: {formatUint(toFolderID)},
+		paramToName:     {name},
 	}
 
 	var resp metadataResponse
@@ -133,11 +124,10 @@ func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, na
 	return &resp.Metadata, nil
 }
 
-// CopyFolder copies a folder into toFolderID.
 func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*Metadata, error) {
 	params := url.Values{
-		"folderid":   {strconv.FormatUint(folderID, 10)},
-		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
+		paramFolderID:   {formatUint(folderID)},
+		paramToFolderID: {formatUint(toFolderID)},
 	}
 
 	var resp metadataResponse
@@ -147,10 +137,9 @@ func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*
 	return &resp.Metadata, nil
 }
 
-// DeleteFolder deletes an empty folder.
 func (c *Client) DeleteFolder(ctx context.Context, folderID uint64) error {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
+		paramFolderID: {formatUint(folderID)},
 	}
 
 	var resp Error
@@ -160,10 +149,9 @@ func (c *Client) DeleteFolder(ctx context.Context, folderID uint64) error {
 	return nil
 }
 
-// DeleteFolderRecursive deletes a folder and all its contents.
 func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) error {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
+		paramFolderID: {formatUint(folderID)},
 	}
 
 	var resp Error
@@ -199,8 +187,6 @@ func walkContents(ctx context.Context, contents []Metadata, yield func(Metadata,
 	walk(contents)
 }
 
-// Walk returns an iterator that yields every file and folder under folderID recursively.
-// The caller may break early. Context cancellation stops iteration.
 func (c *Client) Walk(ctx context.Context, folderID uint64) iter.Seq2[Metadata, error] {
 	return func(yield func(Metadata, error) bool) {
 		folder, err := c.ListFolder(ctx, folderID, &ListFolderOpts{Recursive: true})
@@ -212,7 +198,6 @@ func (c *Client) Walk(ctx context.Context, folderID uint64) iter.Seq2[Metadata, 
 	}
 }
 
-// WalkByPath returns an iterator that yields every file and folder under path recursively.
 func (c *Client) WalkByPath(ctx context.Context, path string) iter.Seq2[Metadata, error] {
 	return func(yield func(Metadata, error) bool) {
 		folder, err := c.ListFolderByPath(ctx, path, &ListFolderOpts{Recursive: true})

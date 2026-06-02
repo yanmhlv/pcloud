@@ -7,7 +7,6 @@ import (
 	"strconv"
 )
 
-// FileLinkOpts controls optional parameters for file link requests.
 type FileLinkOpts struct {
 	ForceDownload bool
 	ContentType   string
@@ -44,7 +43,7 @@ func (c *Client) getFileLink(ctx context.Context, params url.Values, opts *FileL
 }
 
 func (c *Client) GetFileLink(ctx context.Context, fileID uint64, opts *FileLinkOpts) (*FileLink, error) {
-	fl, err := c.getFileLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
+	fl, err := c.getFileLink(ctx, url.Values{paramFileID: {formatUint(fileID)}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("get file link %d: %w", fileID, err)
 	}
@@ -52,7 +51,7 @@ func (c *Client) GetFileLink(ctx context.Context, fileID uint64, opts *FileLinkO
 }
 
 func (c *Client) GetFileLinkByPath(ctx context.Context, path string, opts *FileLinkOpts) (*FileLink, error) {
-	fl, err := c.getFileLink(ctx, url.Values{"path": {path}}, opts)
+	fl, err := c.getFileLink(ctx, url.Values{paramPath: {path}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("get file link %s: %w", path, err)
 	}
@@ -61,7 +60,7 @@ func (c *Client) GetFileLinkByPath(ctx context.Context, path string, opts *FileL
 
 func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint string) (*FileLink, error) {
 	params := url.Values{
-		"fileid": {strconv.FormatUint(fileID, 10)},
+		paramFileID: {formatUint(fileID)},
 	}
 
 	var resp fileLinkResponse
@@ -71,7 +70,6 @@ func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint strin
 	return &resp.FileLink, nil
 }
 
-// GetVideoLink returns a streaming URL for a video file.
 func (c *Client) GetVideoLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	fl, err := c.getMediaLink(ctx, fileID, "getvideolink")
 	if err != nil {
@@ -80,7 +78,6 @@ func (c *Client) GetVideoLink(ctx context.Context, fileID uint64) (*FileLink, er
 	return fl, nil
 }
 
-// GetAudioLink returns a streaming URL for an audio file.
 func (c *Client) GetAudioLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	fl, err := c.getMediaLink(ctx, fileID, "getaudiolink")
 	if err != nil {
@@ -89,7 +86,6 @@ func (c *Client) GetAudioLink(ctx context.Context, fileID uint64) (*FileLink, er
 	return fl, nil
 }
 
-// GetHLSLink returns an HLS streaming URL for a video file.
 func (c *Client) GetHLSLink(ctx context.Context, fileID uint64) (*FileLink, error) {
 	fl, err := c.getMediaLink(ctx, fileID, "gethlslink")
 	if err != nil {

@@ -216,7 +216,11 @@ func (c *Client) downloadFromLink(ctx context.Context, link *FileLink, opts *Dow
 		return nil, err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	c.mu.RLock()
+	httpCl := c.httpClient
+	c.mu.RUnlock()
+
+	resp, err := httpCl.Do(req)
 	if err != nil {
 		return nil, err
 	}

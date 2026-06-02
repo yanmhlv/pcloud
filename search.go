@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
 type SearchOpts struct {
@@ -21,7 +20,7 @@ func (c *Client) Search(ctx context.Context, query string, opts *SearchOpts) ([]
 	params := url.Values{"query": {query}}
 	if opts != nil {
 		if opts.FolderID > 0 {
-			params.Set("folderid", strconv.FormatUint(opts.FolderID, 10))
+			params.Set(paramFolderID, formatUint(opts.FolderID))
 		}
 		if opts.Recursive {
 			params.Set("recursive", "1")

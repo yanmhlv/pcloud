@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
 type TrashItem struct {
@@ -40,7 +39,7 @@ func (c *Client) restoreFromTrash(ctx context.Context, params url.Values) (*Meta
 }
 
 func (c *Client) RestoreFromTrash(ctx context.Context, fileID uint64) (*Metadata, error) {
-	m, err := c.restoreFromTrash(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
+	m, err := c.restoreFromTrash(ctx, url.Values{paramFileID: {formatUint(fileID)}})
 	if err != nil {
 		return nil, fmt.Errorf("restore from trash %d: %w", fileID, err)
 	}
@@ -48,7 +47,7 @@ func (c *Client) RestoreFromTrash(ctx context.Context, fileID uint64) (*Metadata
 }
 
 func (c *Client) RestoreFromTrashByPath(ctx context.Context, path string) (*Metadata, error) {
-	m, err := c.restoreFromTrash(ctx, url.Values{"path": {path}})
+	m, err := c.restoreFromTrash(ctx, url.Values{paramPath: {path}})
 	if err != nil {
 		return nil, fmt.Errorf("restore from trash %s: %w", path, err)
 	}

@@ -4,17 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
 type ThumbOpts struct {
 	Crop bool
 	Type string
-}
-
-type thumbResponse struct {
-	Error
-	FileLink
 }
 
 func applyThumbOpts(params url.Values, opts *ThumbOpts) {
@@ -43,7 +37,7 @@ func (c *Client) getThumbnail(ctx context.Context, params url.Values, width, hei
 	params.Set("size", fmt.Sprintf("%dx%d", width, height))
 	applyThumbOpts(params, opts)
 
-	var resp thumbResponse
+	var resp fileLinkResponse
 	if err := c.do(ctx, "getthumb", params, &resp); err != nil {
 		return nil, err
 	}
@@ -51,7 +45,7 @@ func (c *Client) getThumbnail(ctx context.Context, params url.Values, width, hei
 }
 
 func (c *Client) GetThumbnail(ctx context.Context, fileID uint64, width, height int, opts *ThumbOpts) (*FileLink, error) {
-	fl, err := c.getThumbnail(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, width, height, opts)
+	fl, err := c.getThumbnail(ctx, url.Values{paramFileID: {formatUint(fileID)}}, width, height, opts)
 	if err != nil {
 		return nil, fmt.Errorf("get thumbnail %d: %w", fileID, err)
 	}
@@ -59,7 +53,7 @@ func (c *Client) GetThumbnail(ctx context.Context, fileID uint64, width, height 
 }
 
 func (c *Client) GetThumbnailByPath(ctx context.Context, path string, width, height int, opts *ThumbOpts) (*FileLink, error) {
-	fl, err := c.getThumbnail(ctx, url.Values{"path": {path}}, width, height, opts)
+	fl, err := c.getThumbnail(ctx, url.Values{paramPath: {path}}, width, height, opts)
 	if err != nil {
 		return nil, fmt.Errorf("get thumbnail %s: %w", path, err)
 	}

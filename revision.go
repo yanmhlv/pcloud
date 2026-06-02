@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
 type revisionsResponse struct {
@@ -21,7 +20,7 @@ func (c *Client) listRevisions(ctx context.Context, params url.Values) ([]Revisi
 }
 
 func (c *Client) ListRevisions(ctx context.Context, fileID uint64) ([]Revision, error) {
-	r, err := c.listRevisions(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
+	r, err := c.listRevisions(ctx, url.Values{paramFileID: {formatUint(fileID)}})
 	if err != nil {
 		return nil, fmt.Errorf("list revisions %d: %w", fileID, err)
 	}
@@ -29,7 +28,7 @@ func (c *Client) ListRevisions(ctx context.Context, fileID uint64) ([]Revision, 
 }
 
 func (c *Client) ListRevisionsByPath(ctx context.Context, path string) ([]Revision, error) {
-	r, err := c.listRevisions(ctx, url.Values{"path": {path}})
+	r, err := c.listRevisions(ctx, url.Values{paramPath: {path}})
 	if err != nil {
 		return nil, fmt.Errorf("list revisions %s: %w", path, err)
 	}
@@ -46,8 +45,8 @@ func (c *Client) revertRevision(ctx context.Context, params url.Values) (*Metada
 
 func (c *Client) RevertRevision(ctx context.Context, fileID, revisionID uint64) (*Metadata, error) {
 	m, err := c.revertRevision(ctx, url.Values{
-		"fileid":     {strconv.FormatUint(fileID, 10)},
-		"revisionid": {strconv.FormatUint(revisionID, 10)},
+		paramFileID:     {formatUint(fileID)},
+		paramRevisionID: {formatUint(revisionID)},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("revert revision %d/%d: %w", fileID, revisionID, err)
@@ -57,8 +56,8 @@ func (c *Client) RevertRevision(ctx context.Context, fileID, revisionID uint64) 
 
 func (c *Client) RevertRevisionByPath(ctx context.Context, path string, revisionID uint64) (*Metadata, error) {
 	m, err := c.revertRevision(ctx, url.Values{
-		"path":       {path},
-		"revisionid": {strconv.FormatUint(revisionID, 10)},
+		paramPath:       {path},
+		paramRevisionID: {formatUint(revisionID)},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("revert revision %s/%d: %w", path, revisionID, err)

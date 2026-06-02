@@ -149,8 +149,8 @@ func (c *Client) upload(ctx context.Context, params url.Values, filename string,
 
 func (c *Client) Upload(ctx context.Context, folderID uint64, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-		"filename": {filename},
+		paramFolderID: {formatUint(folderID)},
+		paramFileName: {filename},
 	}
 	m, err := c.upload(ctx, params, filename, content, opts)
 	if err != nil {
@@ -161,8 +161,8 @@ func (c *Client) Upload(ctx context.Context, folderID uint64, filename string, c
 
 func (c *Client) UploadByPath(ctx context.Context, path, filename string, content io.Reader, opts *UploadOpts) (*Metadata, error) {
 	params := url.Values{
-		"path":     {path},
-		"filename": {filename},
+		paramPath:     {path},
+		paramFileName: {filename},
 	}
 	m, err := c.upload(ctx, params, filename, content, opts)
 	if err != nil {
@@ -233,7 +233,7 @@ func (c *Client) stat(ctx context.Context, params url.Values) (*Metadata, error)
 }
 
 func (c *Client) Stat(ctx context.Context, fileID uint64) (*Metadata, error) {
-	m, err := c.stat(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}})
+	m, err := c.stat(ctx, url.Values{paramFileID: {formatUint(fileID)}})
 	if err != nil {
 		return nil, fmt.Errorf("stat file %d: %w", fileID, err)
 	}
@@ -241,7 +241,7 @@ func (c *Client) Stat(ctx context.Context, fileID uint64) (*Metadata, error) {
 }
 
 func (c *Client) StatByPath(ctx context.Context, path string) (*Metadata, error) {
-	m, err := c.stat(ctx, url.Values{"path": {path}})
+	m, err := c.stat(ctx, url.Values{paramPath: {path}})
 	if err != nil {
 		return nil, fmt.Errorf("stat %s: %w", path, err)
 	}
@@ -254,14 +254,14 @@ func (c *Client) deleteFile(ctx context.Context, params url.Values) error {
 }
 
 func (c *Client) DeleteFile(ctx context.Context, fileID uint64) error {
-	if err := c.deleteFile(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}); err != nil {
+	if err := c.deleteFile(ctx, url.Values{paramFileID: {formatUint(fileID)}}); err != nil {
 		return fmt.Errorf("delete file %d: %w", fileID, err)
 	}
 	return nil
 }
 
 func (c *Client) DeleteFileByPath(ctx context.Context, path string) error {
-	if err := c.deleteFile(ctx, url.Values{"path": {path}}); err != nil {
+	if err := c.deleteFile(ctx, url.Values{paramPath: {path}}); err != nil {
 		return fmt.Errorf("delete %s: %w", path, err)
 	}
 	return nil
@@ -269,8 +269,8 @@ func (c *Client) DeleteFileByPath(ctx context.Context, path string) error {
 
 func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) (*Metadata, error) {
 	params := url.Values{
-		"fileid": {strconv.FormatUint(fileID, 10)},
-		"toname": {newName},
+		paramFileID: {formatUint(fileID)},
+		paramToName: {newName},
 	}
 
 	var resp metadataResponse
@@ -282,9 +282,9 @@ func (c *Client) RenameFile(ctx context.Context, fileID uint64, newName string) 
 
 func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64, name string) (*Metadata, error) {
 	params := url.Values{
-		"fileid":     {strconv.FormatUint(fileID, 10)},
-		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
-		"toname":     {name},
+		paramFileID:     {formatUint(fileID)},
+		paramToFolderID: {formatUint(toFolderID)},
+		paramToName:     {name},
 	}
 
 	var resp metadataResponse
@@ -296,8 +296,8 @@ func (c *Client) MoveFile(ctx context.Context, fileID, toFolderID uint64, name s
 
 func (c *Client) CopyFile(ctx context.Context, fileID, toFolderID uint64) (*Metadata, error) {
 	params := url.Values{
-		"fileid":     {strconv.FormatUint(fileID, 10)},
-		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
+		paramFileID:     {formatUint(fileID)},
+		paramToFolderID: {formatUint(toFolderID)},
 	}
 
 	var resp metadataResponse

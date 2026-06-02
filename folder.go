@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"iter"
 	"net/url"
-	"strconv"
 )
 
 type ListFolderOpts struct {
@@ -43,7 +42,7 @@ func (c *Client) listFolder(ctx context.Context, params url.Values, opts *ListFo
 }
 
 func (c *Client) ListFolder(ctx context.Context, folderID uint64, opts *ListFolderOpts) (*Metadata, error) {
-	m, err := c.listFolder(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
+	m, err := c.listFolder(ctx, url.Values{paramFolderID: {formatUint(folderID)}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("list folder %d: %w", folderID, err)
 	}
@@ -51,7 +50,7 @@ func (c *Client) ListFolder(ctx context.Context, folderID uint64, opts *ListFold
 }
 
 func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFolderOpts) (*Metadata, error) {
-	m, err := c.listFolder(ctx, url.Values{"path": {path}}, opts)
+	m, err := c.listFolder(ctx, url.Values{paramPath: {path}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("list folder %s: %w", path, err)
 	}
@@ -68,8 +67,8 @@ func (c *Client) createFolder(ctx context.Context, params url.Values) (*Metadata
 
 func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
 	m, err := c.createFolder(ctx, url.Values{
-		"folderid": {strconv.FormatUint(parentID, 10)},
-		"name":     {name},
+		paramFolderID: {formatUint(parentID)},
+		paramName:     {name},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create folder %d/%s: %w", parentID, name, err)
@@ -78,7 +77,7 @@ func (c *Client) CreateFolder(ctx context.Context, parentID uint64, name string)
 }
 
 func (c *Client) CreateFolderByPath(ctx context.Context, path string) (*Metadata, error) {
-	m, err := c.createFolder(ctx, url.Values{"path": {path}})
+	m, err := c.createFolder(ctx, url.Values{paramPath: {path}})
 	if err != nil {
 		return nil, fmt.Errorf("create folder %s: %w", path, err)
 	}
@@ -87,8 +86,8 @@ func (c *Client) CreateFolderByPath(ctx context.Context, path string) (*Metadata
 
 func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, name string) (*Metadata, error) {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(parentID, 10)},
-		"name":     {name},
+		paramFolderID: {formatUint(parentID)},
+		paramName:     {name},
 	}
 
 	var resp metadataResponse
@@ -100,8 +99,8 @@ func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, n
 
 func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName string) (*Metadata, error) {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-		"toname":   {newName},
+		paramFolderID: {formatUint(folderID)},
+		paramToName:   {newName},
 	}
 
 	var resp metadataResponse
@@ -113,9 +112,9 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 
 func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, name string) (*Metadata, error) {
 	params := url.Values{
-		"folderid":   {strconv.FormatUint(folderID, 10)},
-		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
-		"toname":     {name},
+		paramFolderID:   {formatUint(folderID)},
+		paramToFolderID: {formatUint(toFolderID)},
+		paramToName:     {name},
 	}
 
 	var resp metadataResponse
@@ -127,8 +126,8 @@ func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, na
 
 func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*Metadata, error) {
 	params := url.Values{
-		"folderid":   {strconv.FormatUint(folderID, 10)},
-		"tofolderid": {strconv.FormatUint(toFolderID, 10)},
+		paramFolderID:   {formatUint(folderID)},
+		paramToFolderID: {formatUint(toFolderID)},
 	}
 
 	var resp metadataResponse
@@ -140,7 +139,7 @@ func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*
 
 func (c *Client) DeleteFolder(ctx context.Context, folderID uint64) error {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
+		paramFolderID: {formatUint(folderID)},
 	}
 
 	var resp Error
@@ -152,7 +151,7 @@ func (c *Client) DeleteFolder(ctx context.Context, folderID uint64) error {
 
 func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) error {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
+		paramFolderID: {formatUint(folderID)},
 	}
 
 	var resp Error

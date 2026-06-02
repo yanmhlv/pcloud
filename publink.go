@@ -66,7 +66,7 @@ func (c *Client) createFilePublicLink(ctx context.Context, params url.Values, op
 }
 
 func (c *Client) CreateFilePublicLink(ctx context.Context, fileID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
-	pl, err := c.createFilePublicLink(ctx, url.Values{"fileid": {strconv.FormatUint(fileID, 10)}}, opts)
+	pl, err := c.createFilePublicLink(ctx, url.Values{paramFileID: {formatUint(fileID)}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("create file public link %d: %w", fileID, err)
 	}
@@ -74,7 +74,7 @@ func (c *Client) CreateFilePublicLink(ctx context.Context, fileID uint64, opts *
 }
 
 func (c *Client) CreateFilePublicLinkByPath(ctx context.Context, path string, opts *PublicLinkOpts) (*PublicLink, error) {
-	pl, err := c.createFilePublicLink(ctx, url.Values{"path": {path}}, opts)
+	pl, err := c.createFilePublicLink(ctx, url.Values{paramPath: {path}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("create file public link %s: %w", path, err)
 	}
@@ -91,7 +91,7 @@ func (c *Client) createFolderPublicLink(ctx context.Context, params url.Values, 
 }
 
 func (c *Client) CreateFolderPublicLink(ctx context.Context, folderID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
-	pl, err := c.createFolderPublicLink(ctx, url.Values{"folderid": {strconv.FormatUint(folderID, 10)}}, opts)
+	pl, err := c.createFolderPublicLink(ctx, url.Values{paramFolderID: {formatUint(folderID)}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("create folder public link %d: %w", folderID, err)
 	}
@@ -99,7 +99,7 @@ func (c *Client) CreateFolderPublicLink(ctx context.Context, folderID uint64, op
 }
 
 func (c *Client) CreateFolderPublicLinkByPath(ctx context.Context, path string, opts *PublicLinkOpts) (*PublicLink, error) {
-	pl, err := c.createFolderPublicLink(ctx, url.Values{"path": {path}}, opts)
+	pl, err := c.createFolderPublicLink(ctx, url.Values{paramPath: {path}}, opts)
 	if err != nil {
 		return nil, fmt.Errorf("create folder public link %s: %w", path, err)
 	}
@@ -116,7 +116,7 @@ func (c *Client) ListPublicLinks(ctx context.Context) ([]PublicLink, error) {
 
 func (c *Client) DeletePublicLink(ctx context.Context, linkID uint64) error {
 	params := url.Values{
-		"linkid": {strconv.FormatUint(linkID, 10)},
+		paramLinkID: {formatUint(linkID)},
 	}
 
 	var resp Error
@@ -128,7 +128,7 @@ func (c *Client) DeletePublicLink(ctx context.Context, linkID uint64) error {
 
 func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *PublicLinkOpts) (*PublicLink, error) {
 	params := url.Values{
-		"linkid": {strconv.FormatUint(linkID, 10)},
+		paramLinkID: {formatUint(linkID)},
 	}
 	applyPublicLinkOpts(params, opts)
 

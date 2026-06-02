@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 )
 
 type SharePermissions struct {
@@ -63,8 +62,8 @@ func applyPermissions(params url.Values, perms SharePermissions) {
 
 func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
 	params := url.Values{
-		"folderid": {strconv.FormatUint(folderID, 10)},
-		"mail":     {email},
+		paramFolderID: {formatUint(folderID)},
+		paramMail:     {email},
 	}
 	s, err := c.shareFolder(ctx, params, perms, opts)
 	if err != nil {
@@ -75,8 +74,8 @@ func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string,
 
 func (c *Client) ShareFolderByPath(ctx context.Context, path string, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
 	params := url.Values{
-		"path": {path},
-		"mail": {email},
+		paramPath: {path},
+		paramMail: {email},
 	}
 	s, err := c.shareFolder(ctx, params, perms, opts)
 	if err != nil {
@@ -113,7 +112,7 @@ func (c *Client) ListShares(ctx context.Context) (Shares, error) {
 
 func (c *Client) AcceptShare(ctx context.Context, shareRequestID uint64) error {
 	params := url.Values{
-		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
+		paramShareRequestID: {formatUint(shareRequestID)},
 	}
 
 	var resp Error
@@ -125,7 +124,7 @@ func (c *Client) AcceptShare(ctx context.Context, shareRequestID uint64) error {
 
 func (c *Client) DeclineShare(ctx context.Context, shareRequestID uint64) error {
 	params := url.Values{
-		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
+		paramShareRequestID: {formatUint(shareRequestID)},
 	}
 
 	var resp Error
@@ -137,7 +136,7 @@ func (c *Client) DeclineShare(ctx context.Context, shareRequestID uint64) error 
 
 func (c *Client) RemoveShare(ctx context.Context, shareID uint64) error {
 	params := url.Values{
-		"shareid": {strconv.FormatUint(shareID, 10)},
+		paramShareID: {formatUint(shareID)},
 	}
 
 	var resp Error
@@ -149,7 +148,7 @@ func (c *Client) RemoveShare(ctx context.Context, shareID uint64) error {
 
 func (c *Client) CancelShareRequest(ctx context.Context, shareRequestID uint64) error {
 	params := url.Values{
-		"sharerequestid": {strconv.FormatUint(shareRequestID, 10)},
+		paramShareRequestID: {formatUint(shareRequestID)},
 	}
 
 	var resp Error
@@ -161,7 +160,7 @@ func (c *Client) CancelShareRequest(ctx context.Context, shareRequestID uint64) 
 
 func (c *Client) ChangeShare(ctx context.Context, shareID uint64, perms SharePermissions) error {
 	params := url.Values{
-		"shareid": {strconv.FormatUint(shareID, 10)},
+		paramShareID: {formatUint(shareID)},
 	}
 	applyPermissions(params, perms)
 

@@ -143,25 +143,21 @@ func TestConcurrentDownloadAndSetHTTPClient(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for range 10 {
-		wg.Add(3)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			rc, err := c.Download(t.Context(), 1, nil)
 			if err == nil {
 				rc.Close()
 			}
-		}()
-		go func() {
-			defer wg.Done()
+		})
+		wg.Go(func() {
 			rc, err := c.DownloadByPath(t.Context(), "/file", nil)
 			if err == nil {
 				rc.Close()
 			}
-		}()
-		go func() {
-			defer wg.Done()
+		})
+		wg.Go(func() {
 			c.SetHTTPClient(&http.Client{})
-		}()
+		})
 	}
 	wg.Wait()
 }

@@ -77,16 +77,13 @@ func TestConcurrentLoginAndRequest(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for range 10 {
-		wg.Add(2)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			c.Login(t.Context(), "u", "p")
-		}()
-		go func() {
-			defer wg.Done()
+		})
+		wg.Go(func() {
 			var resp Error
 			c.do(t.Context(), "ping", url.Values{}, &resp)
-		}()
+		})
 	}
 	wg.Wait()
 }

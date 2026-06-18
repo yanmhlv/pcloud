@@ -6,6 +6,11 @@ import (
 	"net/url"
 )
 
+const (
+	minThumbSize = 1
+	maxThumbSize = 2048
+)
+
 type ThumbOpts struct {
 	Crop bool
 	Type string
@@ -24,8 +29,9 @@ func applyThumbOpts(params url.Values, opts *ThumbOpts) {
 }
 
 func validateThumbSize(width, height int) error {
-	if width < 1 || width > 2048 || height < 1 || height > 2048 {
-		return fmt.Errorf("thumbnail size %dx%d is out of allowed range 1–2048", width, height)
+	outOfRange := width < minThumbSize || width > maxThumbSize || height < minThumbSize || height > maxThumbSize
+	if outOfRange {
+		return fmt.Errorf("thumbnail size %dx%d is out of allowed range %d–%d", width, height, minThumbSize, maxThumbSize)
 	}
 	return nil
 }
@@ -38,7 +44,7 @@ func (c *Client) getThumbnail(ctx context.Context, params url.Values, width, hei
 	applyThumbOpts(params, opts)
 
 	var resp fileLinkResponse
-	if err := c.do(ctx, "getthumb", params, &resp); err != nil {
+	if err := c.doGet(ctx, "getthumb", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.FileLink, nil

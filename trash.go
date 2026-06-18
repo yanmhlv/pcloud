@@ -24,7 +24,7 @@ type trashListResponse struct {
 
 func (c *Client) ListTrash(ctx context.Context) ([]TrashItem, error) {
 	var resp trashListResponse
-	if err := c.do(ctx, "trash_list", url.Values{}, &resp); err != nil {
+	if err := c.doGet(ctx, "trash_list", url.Values{}, &resp); err != nil {
 		return nil, fmt.Errorf("list trash: %w", err)
 	}
 	return resp.Items, nil
@@ -32,7 +32,7 @@ func (c *Client) ListTrash(ctx context.Context) ([]TrashItem, error) {
 
 func (c *Client) restoreFromTrash(ctx context.Context, params url.Values) (*Metadata, error) {
 	var resp metadataResponse
-	if err := c.do(ctx, "trash_restoretofolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "trash_restoretofolder", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
@@ -56,7 +56,7 @@ func (c *Client) RestoreFromTrashByPath(ctx context.Context, path string) (*Meta
 
 func (c *Client) EmptyTrash(ctx context.Context) error {
 	var resp Error
-	if err := c.do(ctx, "trash_clear", url.Values{}, &resp); err != nil {
+	if err := c.doGet(ctx, "trash_clear", url.Values{}, &resp); err != nil {
 		return fmt.Errorf("empty trash: %w", err)
 	}
 	return nil

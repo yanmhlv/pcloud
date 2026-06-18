@@ -13,7 +13,7 @@ type revisionsResponse struct {
 
 func (c *Client) listRevisions(ctx context.Context, params url.Values) ([]Revision, error) {
 	var resp revisionsResponse
-	if err := c.do(ctx, "listrevisions", params, &resp); err != nil {
+	if err := c.doGet(ctx, "listrevisions", params, &resp); err != nil {
 		return nil, err
 	}
 	return resp.Revisions, nil
@@ -37,7 +37,7 @@ func (c *Client) ListRevisionsByPath(ctx context.Context, path string) ([]Revisi
 
 func (c *Client) revertRevision(ctx context.Context, params url.Values) (*Metadata, error) {
 	var resp metadataResponse
-	if err := c.do(ctx, "revertrevision", params, &resp); err != nil {
+	if err := c.doGet(ctx, "revertrevision", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil

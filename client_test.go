@@ -45,7 +45,7 @@ func TestRequestAuthInjected(t *testing.T) {
 	})
 
 	var resp Error
-	if err := c.do(t.Context(), "ping", url.Values{}, &resp); err != nil {
+	if err := c.doGet(t.Context(), "ping", url.Values{}, &resp); err != nil {
 		t.Fatal(err)
 	}
 	if gotAuth != "test-token" {
@@ -60,7 +60,7 @@ func TestRequestAPIError(t *testing.T) {
 	})
 
 	var resp Error
-	err := c.do(t.Context(), "stat", url.Values{}, &resp)
+	err := c.doGet(t.Context(), "stat", url.Values{}, &resp)
 	if err == nil {
 		t.Fatal("expected error from API result=2005")
 	}
@@ -82,7 +82,7 @@ func TestConcurrentLoginAndRequest(t *testing.T) {
 		})
 		wg.Go(func() {
 			var resp Error
-			c.do(t.Context(), "ping", url.Values{}, &resp)
+			c.doGet(t.Context(), "ping", url.Values{}, &resp)
 		})
 	}
 	wg.Wait()
@@ -96,7 +96,7 @@ func TestRequestHTTP500(t *testing.T) {
 	})
 
 	var resp Error
-	err := c.do(t.Context(), "test", url.Values{}, &resp)
+	err := c.doGet(t.Context(), "test", url.Values{}, &resp)
 	if err == nil {
 		t.Fatal("expected error for HTTP 500")
 	}
@@ -112,7 +112,7 @@ func TestRequestHTTP200Valid(t *testing.T) {
 	})
 
 	var resp Error
-	if err := c.do(t.Context(), "test", url.Values{}, &resp); err != nil {
+	if err := c.doGet(t.Context(), "test", url.Values{}, &resp); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }

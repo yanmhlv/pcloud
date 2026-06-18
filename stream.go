@@ -36,7 +36,7 @@ type fileLinkResponse struct {
 func (c *Client) getFileLink(ctx context.Context, params url.Values, opts *FileLinkOpts) (*FileLink, error) {
 	applyLinkOpts(params, opts)
 	var resp fileLinkResponse
-	if err := c.do(ctx, "getfilelink", params, &resp); err != nil {
+	if err := c.doGet(ctx, "getfilelink", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.FileLink, nil
@@ -64,7 +64,7 @@ func (c *Client) getMediaLink(ctx context.Context, fileID uint64, endpoint strin
 	}
 
 	var resp fileLinkResponse
-	if err := c.do(ctx, endpoint, params, &resp); err != nil {
+	if err := c.doGet(ctx, endpoint, params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.FileLink, nil

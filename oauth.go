@@ -37,7 +37,7 @@ func (c *Client) ExchangeCode(ctx context.Context, cfg *oauth2.Config, code stri
 	}
 
 	var resp exchangeResponse
-	if err := c.do(ctx, "oauth2_token", params, &resp); err != nil {
+	if err := c.doGet(ctx, "oauth2_token", params, &resp); err != nil {
 		return nil, fmt.Errorf("exchange code: %w", err)
 	}
 

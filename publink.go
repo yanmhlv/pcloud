@@ -59,7 +59,7 @@ type publicLinkResponse struct {
 func (c *Client) createFilePublicLink(ctx context.Context, params url.Values, opts *PublicLinkOpts) (*PublicLink, error) {
 	applyPublicLinkOpts(params, opts)
 	var resp publicLinkResponse
-	if err := c.do(ctx, "getfilepublink", params, &resp); err != nil {
+	if err := c.doGet(ctx, "getfilepublink", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.PublicLink, nil
@@ -84,7 +84,7 @@ func (c *Client) CreateFilePublicLinkByPath(ctx context.Context, path string, op
 func (c *Client) createFolderPublicLink(ctx context.Context, params url.Values, opts *PublicLinkOpts) (*PublicLink, error) {
 	applyPublicLinkOpts(params, opts)
 	var resp publicLinkResponse
-	if err := c.do(ctx, "getfolderpublink", params, &resp); err != nil {
+	if err := c.doGet(ctx, "getfolderpublink", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.PublicLink, nil
@@ -108,7 +108,7 @@ func (c *Client) CreateFolderPublicLinkByPath(ctx context.Context, path string, 
 
 func (c *Client) ListPublicLinks(ctx context.Context) ([]PublicLink, error) {
 	var resp listPublicLinksResponse
-	if err := c.do(ctx, "listpublinks", url.Values{}, &resp); err != nil {
+	if err := c.doGet(ctx, "listpublinks", url.Values{}, &resp); err != nil {
 		return nil, fmt.Errorf("list public links: %w", err)
 	}
 	return resp.PubLinks, nil
@@ -120,7 +120,7 @@ func (c *Client) DeletePublicLink(ctx context.Context, linkID uint64) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletepublink", params, &resp); err != nil {
+	if err := c.doGet(ctx, "deletepublink", params, &resp); err != nil {
 		return fmt.Errorf("delete public link %d: %w", linkID, err)
 	}
 	return nil
@@ -133,7 +133,7 @@ func (c *Client) ChangePublicLink(ctx context.Context, linkID uint64, opts *Publ
 	applyPublicLinkOpts(params, opts)
 
 	var resp publicLinkResponse
-	if err := c.do(ctx, "changepublink", params, &resp); err != nil {
+	if err := c.doGet(ctx, "changepublink", params, &resp); err != nil {
 		return nil, fmt.Errorf("change public link %d: %w", linkID, err)
 	}
 	return &resp.PublicLink, nil
@@ -145,7 +145,7 @@ func (c *Client) GetPublicLinkInfo(ctx context.Context, code string) (*PublicLin
 	}
 
 	var resp publicLinkResponse
-	if err := c.do(ctx, "showpublink", params, &resp); err != nil {
+	if err := c.doGet(ctx, "showpublink", params, &resp); err != nil {
 		return nil, fmt.Errorf("get public link info %s: %w", code, err)
 	}
 	return &resp.PublicLink, nil

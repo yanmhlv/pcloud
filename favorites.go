@@ -13,7 +13,7 @@ type favoritesResponse struct {
 
 func (c *Client) ListFavorites(ctx context.Context) ([]Metadata, error) {
 	var resp favoritesResponse
-	if err := c.do(ctx, "getfavourites", url.Values{}, &resp); err != nil {
+	if err := c.doGet(ctx, "getfavourites", url.Values{}, &resp); err != nil {
 		return nil, fmt.Errorf("list favorites: %w", err)
 	}
 	return resp.Items, nil
@@ -21,7 +21,7 @@ func (c *Client) ListFavorites(ctx context.Context) ([]Metadata, error) {
 
 func (c *Client) addFavorite(ctx context.Context, params url.Values) error {
 	var resp Error
-	return c.do(ctx, "addfavourite", params, &resp)
+	return c.doGet(ctx, "addfavourite", params, &resp)
 }
 
 func (c *Client) AddFavorite(ctx context.Context, fileID uint64) error {
@@ -40,7 +40,7 @@ func (c *Client) AddFavoriteByPath(ctx context.Context, path string) error {
 
 func (c *Client) removeFavorite(ctx context.Context, params url.Values) error {
 	var resp Error
-	return c.do(ctx, "removefavourite", params, &resp)
+	return c.doGet(ctx, "removefavourite", params, &resp)
 }
 
 func (c *Client) RemoveFavorite(ctx context.Context, fileID uint64) error {

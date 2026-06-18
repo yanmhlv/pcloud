@@ -35,7 +35,7 @@ func applyListFolderOpts(params url.Values, opts *ListFolderOpts) {
 func (c *Client) listFolder(ctx context.Context, params url.Values, opts *ListFolderOpts) (*Metadata, error) {
 	applyListFolderOpts(params, opts)
 	var resp metadataResponse
-	if err := c.do(ctx, "listfolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "listfolder", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
@@ -59,7 +59,7 @@ func (c *Client) ListFolderByPath(ctx context.Context, path string, opts *ListFo
 
 func (c *Client) createFolder(ctx context.Context, params url.Values) (*Metadata, error) {
 	var resp metadataResponse
-	if err := c.do(ctx, "createfolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "createfolder", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Metadata, nil
@@ -91,7 +91,7 @@ func (c *Client) CreateFolderIfNotExists(ctx context.Context, parentID uint64, n
 	}
 
 	var resp metadataResponse
-	if err := c.do(ctx, "createfolderifnotexists", params, &resp); err != nil {
+	if err := c.doGet(ctx, "createfolderifnotexists", params, &resp); err != nil {
 		return nil, fmt.Errorf("create folder if not exists %d/%s: %w", parentID, name, err)
 	}
 	return &resp.Metadata, nil
@@ -104,7 +104,7 @@ func (c *Client) RenameFolder(ctx context.Context, folderID uint64, newName stri
 	}
 
 	var resp metadataResponse
-	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "renamefolder", params, &resp); err != nil {
 		return nil, fmt.Errorf("rename folder %d: %w", folderID, err)
 	}
 	return &resp.Metadata, nil
@@ -118,7 +118,7 @@ func (c *Client) MoveFolder(ctx context.Context, folderID, toFolderID uint64, na
 	}
 
 	var resp metadataResponse
-	if err := c.do(ctx, "renamefolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "renamefolder", params, &resp); err != nil {
 		return nil, fmt.Errorf("move folder %d: %w", folderID, err)
 	}
 	return &resp.Metadata, nil
@@ -131,7 +131,7 @@ func (c *Client) CopyFolder(ctx context.Context, folderID, toFolderID uint64) (*
 	}
 
 	var resp metadataResponse
-	if err := c.do(ctx, "copyfolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "copyfolder", params, &resp); err != nil {
 		return nil, fmt.Errorf("copy folder %d: %w", folderID, err)
 	}
 	return &resp.Metadata, nil
@@ -143,7 +143,7 @@ func (c *Client) DeleteFolder(ctx context.Context, folderID uint64) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletefolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "deletefolder", params, &resp); err != nil {
 		return fmt.Errorf("delete folder %d: %w", folderID, err)
 	}
 	return nil
@@ -155,7 +155,7 @@ func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) err
 	}
 
 	var resp Error
-	if err := c.do(ctx, "deletefolderrecursive", params, &resp); err != nil {
+	if err := c.doGet(ctx, "deletefolderrecursive", params, &resp); err != nil {
 		return fmt.Errorf("delete folder recursive %d: %w", folderID, err)
 	}
 	return nil
@@ -164,10 +164,6 @@ func (c *Client) DeleteFolderRecursive(ctx context.Context, folderID uint64) err
 func walkContents(ctx context.Context, contents []Metadata, yield func(Metadata, error) bool) {
 	var walk func(items []Metadata) bool
 	walk = func(items []Metadata) bool {
-		if err := ctx.Err(); err != nil {
-			yield(Metadata{}, err)
-			return false
-		}
 		for _, item := range items {
 			if err := ctx.Err(); err != nil {
 				yield(Metadata{}, err)
@@ -176,10 +172,11 @@ func walkContents(ctx context.Context, contents []Metadata, yield func(Metadata,
 			if !yield(item, nil) {
 				return false
 			}
-			if item.IsFolder && len(item.Contents) > 0 {
-				if !walk(item.Contents) {
-					return false
-				}
+			if !item.IsFolder || len(item.Contents) == 0 {
+				continue
+			}
+			if !walk(item.Contents) {
+				return false
 			}
 		}
 		return true

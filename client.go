@@ -23,7 +23,10 @@ const (
 	MinRPM = 100.0
 )
 
-const rateLimiterBurst = 10
+const (
+	rateLimiterBurst  = 10
+	maxErrorBodyBytes = 512
+)
 
 type Client struct {
 	mu          sync.RWMutex
@@ -44,13 +47,19 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
-func (c *Client) SetHTTPClient(client *http.Client) {
+func (c *Client) SetHTTPClient(httpClient *http.Client) {
+	if httpClient == nil {
+		httpClient = &http.Client{}
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.httpClient = client
+	c.httpClient = httpClient
 }
 
 func (c *Client) SetLogger(logger *slog.Logger) {
+	if logger == nil {
+		logger = newNoopLogger()
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.logger = logger
@@ -78,7 +87,7 @@ func (c *Client) request(ctx context.Context, httpMethod, apiMethod string, para
 	}
 
 	c.mu.RLock()
-	httpCl := c.httpClient
+	httpClient := c.httpClient
 	logger := c.logger
 	limiter := c.limiter
 	baseURL := c.baseURL
@@ -98,15 +107,15 @@ func (c *Client) request(ctx context.Context, httpMethod, apiMethod string, para
 		req.Header.Set("Content-Type", contentType)
 	}
 
-	resp, err := httpCl.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		logger.Error("request failed", "method", apiMethod, "error", err)
 		return err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		io.Copy(io.Discard, io.LimitReader(resp.Body, 512))
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		io.Copy(io.Discard, io.LimitReader(resp.Body, maxErrorBodyBytes))
 		return fmt.Errorf("pcloud: %s %s: %s", httpMethod, apiMethod, resp.Status)
 	}
 
@@ -117,7 +126,7 @@ func (c *Client) request(ctx context.Context, httpMethod, apiMethod string, para
 	return result.Err()
 }
 
-func (c *Client) do(ctx context.Context, method string, params url.Values, result apiError) error {
+func (c *Client) doGet(ctx context.Context, method string, params url.Values, result apiError) error {
 	return c.request(ctx, http.MethodGet, method, params, nil, "", result)
 }
 

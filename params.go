@@ -20,3 +20,10 @@ const (
 func formatUint(v uint64) string {
 	return strconv.FormatUint(v, 10)
 }
+
+func formatBool(b bool) string {
+	if b {
+		return "1"
+	}
+	return "0"
+}

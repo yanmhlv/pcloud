@@ -46,18 +46,11 @@ type listSharesResponse struct {
 	Requests []Share `json:"requests"`
 }
 
-func boolParam(b bool) string {
-	if b {
-		return "1"
-	}
-	return "0"
-}
-
 func applyPermissions(params url.Values, perms SharePermissions) {
-	params.Set("canread", boolParam(perms.CanRead))
-	params.Set("cancreate", boolParam(perms.CanCreate))
-	params.Set("canmodify", boolParam(perms.CanModify))
-	params.Set("candelete", boolParam(perms.CanDelete))
+	params.Set("canread", formatBool(perms.CanRead))
+	params.Set("cancreate", formatBool(perms.CanCreate))
+	params.Set("canmodify", formatBool(perms.CanModify))
+	params.Set("candelete", formatBool(perms.CanDelete))
 }
 
 func (c *Client) ShareFolder(ctx context.Context, folderID uint64, email string, perms SharePermissions, opts *ShareOpts) (*Share, error) {
@@ -91,7 +84,7 @@ func (c *Client) shareFolder(ctx context.Context, params url.Values, perms Share
 	}
 
 	var resp shareResponse
-	if err := c.do(ctx, "sharefolder", params, &resp); err != nil {
+	if err := c.doGet(ctx, "sharefolder", params, &resp); err != nil {
 		return nil, err
 	}
 	return &resp.Share, nil
@@ -104,7 +97,7 @@ type Shares struct {
 
 func (c *Client) ListShares(ctx context.Context) (Shares, error) {
 	var resp listSharesResponse
-	if err := c.do(ctx, "listshares", url.Values{}, &resp); err != nil {
+	if err := c.doGet(ctx, "listshares", url.Values{}, &resp); err != nil {
 		return Shares{}, fmt.Errorf("list shares: %w", err)
 	}
 	return Shares{Active: resp.Shares, Requests: resp.Requests}, nil
@@ -116,7 +109,7 @@ func (c *Client) AcceptShare(ctx context.Context, shareRequestID uint64) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "acceptshare", params, &resp); err != nil {
+	if err := c.doGet(ctx, "acceptshare", params, &resp); err != nil {
 		return fmt.Errorf("accept share %d: %w", shareRequestID, err)
 	}
 	return nil
@@ -128,7 +121,7 @@ func (c *Client) DeclineShare(ctx context.Context, shareRequestID uint64) error 
 	}
 
 	var resp Error
-	if err := c.do(ctx, "declineshare", params, &resp); err != nil {
+	if err := c.doGet(ctx, "declineshare", params, &resp); err != nil {
 		return fmt.Errorf("decline share %d: %w", shareRequestID, err)
 	}
 	return nil
@@ -140,7 +133,7 @@ func (c *Client) RemoveShare(ctx context.Context, shareID uint64) error {
 	}
 
 	var resp Error
-	if err := c.do(ctx, "removeshare", params, &resp); err != nil {
+	if err := c.doGet(ctx, "removeshare", params, &resp); err != nil {
 		return fmt.Errorf("remove share %d: %w", shareID, err)
 	}
 	return nil
@@ -152,7 +145,7 @@ func (c *Client) CancelShareRequest(ctx context.Context, shareRequestID uint64) 
 	}
 
 	var resp Error
-	if err := c.do(ctx, "cancelsharerequest", params, &resp); err != nil {
+	if err := c.doGet(ctx, "cancelsharerequest", params, &resp); err != nil {
 		return fmt.Errorf("cancel share request %d: %w", shareRequestID, err)
 	}
 	return nil
@@ -165,7 +158,7 @@ func (c *Client) ChangeShare(ctx context.Context, shareID uint64, perms SharePer
 	applyPermissions(params, perms)
 
 	var resp Error
-	if err := c.do(ctx, "changeshare", params, &resp); err != nil {
+	if err := c.doGet(ctx, "changeshare", params, &resp); err != nil {
 		return fmt.Errorf("change share %d: %w", shareID, err)
 	}
 	return nil
